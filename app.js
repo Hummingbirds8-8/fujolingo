@@ -859,7 +859,19 @@ function renderCouplingList() {
   });
 }
 
-// Populate Coupling dropdown
+// Populate Coupling dropdown (Legacy helper - now updates Home quick couplings)
+function populateCouplingSelect() {
+  if (typeof renderHomeQuickCouplings === "function") {
+    renderHomeQuickCouplings();
+  }
+}
+
+// Update Generator Series UI (Legacy helper - now updates Bookshelf)
+function updateGeneratorSeriesUI() {
+  if (typeof renderBookshelf === "function") {
+    renderBookshelf();
+  }
+}
 // ── RENDER BOOKSHELF (本棚画面) ──
 function renderBookshelf() {
   if (!DOM.bookshelfContainer) return;
