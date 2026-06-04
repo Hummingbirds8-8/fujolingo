@@ -66,7 +66,7 @@ ${continuityPrompt}
 2. Content & Dialogue Focus: 
    - Focus heavily on written dialogue (会話劇多め) between ${charA.name} and ${charB.name}. Include multiple lines of characteristic spoken dialogue for both characters.
    - The story should highlight the "Younger Seme x Older Uke" (年下攻め×年上受け) relationship dynamic. Make sure the younger ${charA.name} takes the lead with passion, reliability, or playful teasing, while the older ${charB.name} shows a mixture of maturity and cute shyness/flustered responses in their dialogue.
-3. Japanese Translation: Translate the story into natural, appealing Japanese. Adjust their speech styles in the Japanese translation to match their character descriptions, dynamic, and current intimacy level (e.g. established lovers should sound naturally close and physically/emotionally affectionate in their speech, while crush/slowburn should sound more hesitant or flustered).
+3. Japanese Translation: Translate the story into natural, appealing Japanese. Adjust their speech styles in the Japanese translation to match their character descriptions, dynamic, and current intimacy level. Character names in the Japanese translation MUST be written exactly as they are input (e.g., if Character A's name is "${charA.name}" and Character B's name is "${charB.name}", write them exactly as "${charA.name}" and "${charB.name}" in the Japanese translation text; DO NOT map or translate them into Japanese Kanji, Hiragana, or Katakana like "輝", "照", or "テル").
 4. Vocabulary:
    - Identify 4 to 6 important vocabulary words in the story that are suitable for the target Eiken level (Pre-2 or 2nd Grade).
    - In Eiken Pre-2, focus on words like: hesitate, generous, appreciate, avoid, disappointed, etc.
@@ -98,7 +98,7 @@ Write a short cultural or linguistic analysis essay in English designed as a rea
 [Requirements]
 1. Word Count: 140 to 220 words.
 2. Content: Analyze why the trope "${tropeText}" is so popular in fiction, what psychological dynamics make it appealing (e.g. the transition of emotions, tension, trust building), and how character interactions shape this dynamic. Reference the characters ${charA.name} and ${charB.name} as example models if relevant.
-3. Japanese Translation: Translate the essay into natural, elegant Japanese.
+3. Japanese Translation: Translate the essay into natural, elegant Japanese. Character names in the Japanese translation MUST be written exactly as they are input (e.g. write them exactly as "${charA.name}" and "${charB.name}" in the Japanese translation text; DO NOT map or translate them into Japanese Kanji, Hiragana, or Katakana like "輝", "照", or "テル").
 4. Vocabulary:
    - Identify 4 to 6 important vocabulary words in the essay that are suitable for the target Eiken level (Pre-2 or 2nd Grade).
    - Extract their part of speech, Japanese meaning, Eiken level, importance rating (1 to 5 stars), and the exact sentence they appear in.
