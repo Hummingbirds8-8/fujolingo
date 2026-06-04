@@ -1,0 +1,1797 @@
+/**
+ * Fujolingo Core Application Logic (Adult Workplace Theme)
+ */
+
+// Application State
+const state = {
+  currentView: "view-home", // Home view is active by default
+  apiKey: "",
+  
+  // Coupling list (A x B pairs)
+  couplings: [],
+  selectedCouplingId: "",
+  generationMode: "standalone", // "standalone" or "series"
+  
+  // Current loaded content (either generated or preset)
+  currentContent: null,
+  studyModeActive: false,
+  
+  // Audio Synthesis
+  speechUtterance: null,
+  speechSpeed: 1.0,
+  
+  // Vocabulary Deck
+  vocabList: [], // Saved vocab cards: { word, pos, meaning, context, level, importance, id }
+  vocabQueue: [], // Current active review list
+  currentVocabIndex: 0,
+  
+  // Statistics & Streak
+  stats: {
+    totalRead: 0,
+    totalCorrect: 0,
+    totalQuizzes: 0,
+    streak: 0,
+    lastReadDate: ""
+  }
+};
+
+// DOM Elements
+const DOM = {
+  tabs: document.querySelectorAll(".nav-tab"),
+  views: document.querySelectorAll(".app-view"),
+  apiKeyInput: document.getElementById("api-key"),
+  
+  // Coupling UI bindings
+  settingCouplingSelect: document.getElementById("setting-coupling-select"),
+  seriesHistoryPanel: document.getElementById("series-history-panel"),
+  seriesHistoryText: document.getElementById("series-history-text"),
+  seriesLibraryContainer: document.getElementById("series-library-container"),
+  generatorSeriesChapter: document.getElementById("generator-series-chapter"),
+  btnGenerateByTags: document.getElementById("btn-generate-by-tags"),
+  
+  btnSaveCoupling: document.getElementById("btn-save-coupling"),
+  btnCancelCoupling: document.getElementById("btn-cancel-coupling"),
+  btnAddCoupling: document.getElementById("btn-add-coupling"),
+  couplingListContainer: document.getElementById("coupling-list-container"),
+  couplingEditPanel: document.getElementById("coupling-edit-panel"),
+  
+  // Edit Form Fields
+  editCoupleId: document.getElementById("edit-couple-id"),
+  editCoupleRel: document.getElementById("edit-couple-rel"),
+  editCoupleIntimacy: document.getElementById("edit-couple-intimacy"),
+  editCharAName: document.getElementById("edit-char-a-name"),
+  editCharADesc: document.getElementById("edit-char-a-desc"),
+  editCharASpeech: document.getElementById("edit-char-a-speech"),
+  editCharBName: document.getElementById("edit-char-b-name"),
+  editCharBDesc: document.getElementById("edit-char-b-desc"),
+  editCharBSpeech: document.getElementById("edit-char-b-speech"),
+  
+  // Generator options
+  settingLevel: document.getElementById("setting-level"),
+  settingType: document.getElementById("setting-type"),
+  settingTrope: document.getElementById("setting-trope"),
+  customTropeGroup: document.getElementById("custom-trope-group"),
+  settingCustomTrope: document.getElementById("setting-custom-trope"),
+  btnGenerate: document.getElementById("btn-generate"),
+  genLoading: document.getElementById("gen-loading"),
+  presetContainer: document.getElementById("preset-container"),
+  
+  // Reader View
+  readerMetaLevel: document.getElementById("reader-meta-level"),
+  readerMetaTrope: document.getElementById("reader-meta-trope"),
+  readerMetaWpm: document.getElementById("reader-meta-wpm"),
+  readerTitle: document.getElementById("reader-title"),
+  btnAudioPlay: document.getElementById("btn-audio-play"),
+  btnAudioStop: document.getElementById("btn-audio-stop"),
+  audioSpeedSelect: document.getElementById("audio-speed-select"),
+  btnModeEn: document.getElementById("btn-mode-en"),
+  btnModeParallel: document.getElementById("btn-mode-parallel"),
+  btnStudyMode: document.getElementById("btn-study-mode"),
+  readerContentEnglish: document.getElementById("reader-content-english"),
+  readerContentJapanese: document.getElementById("reader-content-japanese"),
+  readerGrammarSection: document.getElementById("reader-grammar-section"),
+  grammarContainer: document.getElementById("grammar-explanation-container"),
+  readerQuizSection: document.getElementById("reader-quiz-section"),
+  quizContainer: document.getElementById("quiz-container"),
+  
+  // Vocab View
+  vocabBadgeCount: document.getElementById("vocab-badge-count"),
+  vocabDeckActive: document.getElementById("vocab-deck-active"),
+  vocabDeckEmpty: document.getElementById("vocab-deck-empty"),
+  vocabCardCounter: document.getElementById("vocab-card-counter"),
+  vocabCardWord: document.getElementById("vocab-card-word"),
+  vocabCardPos: document.getElementById("vocab-card-pos"),
+  vocabCardPosBack: document.getElementById("vocab-card-pos-back"),
+  vocabCardLevel: document.getElementById("vocab-card-level"),
+  vocabCardImportance: document.getElementById("vocab-card-importance"),
+  vocabCardDef: document.getElementById("vocab-card-def"),
+  vocabCardContext: document.getElementById("vocab-card-context"),
+  vocabFlipperContainer: document.getElementById("vocab-flipper-container"),
+  vocabFlipper: document.getElementById("vocab-flipper"),
+  btnVocabForgot: document.getElementById("btn-vocab-forgot"),
+  btnVocabKnow: document.getElementById("btn-vocab-know"),
+  
+  // Stats
+  statsTotalRead: document.getElementById("stats-total-read"),
+  statsTotalWords: document.getElementById("stats-total-words"),
+  statsTotalCorrect: document.getElementById("stats-total-correct"),
+  btnResetOnlyStats: document.getElementById("btn-reset-only-stats"),
+  btnResetOnlyCouplings: document.getElementById("btn-reset-only-couplings"),
+  
+  // Global Popover
+  globalVocabPopup: document.getElementById("global-vocab-popup"),
+  popWord: document.getElementById("pop-word"),
+  popPos: document.getElementById("pop-pos"),
+  popLevel: document.getElementById("pop-level"),
+  popImportance: document.getElementById("pop-importance"),
+  popDef: document.getElementById("pop-def"),
+  popContext: document.getElementById("pop-context"),
+  popClose: document.getElementById("pop-close"),
+  popBtnAddVocab: document.getElementById("pop-btn-add-vocab"),
+  homeQuickCouplingsContainer: document.getElementById("home-quick-couplings-container"),
+  bookshelfContainer: document.getElementById("bookshelf-container")
+};
+
+// Initialize Application
+function init() {
+  try {
+    loadFromLocalStorage();
+  } catch(e) {
+    console.error("Failed to load from local storage", e);
+    state.couplings = [];
+    state.apiKey = "";
+  }
+  
+  // Event listeners are critical and must be set up even if render fails
+  try {
+    setupEventListeners();
+  } catch(e) {
+    console.error("Failed to setup event listeners", e);
+  }
+
+  const safeRun = (fn, name) => {
+    try { fn(); } catch(e) { console.error(`Failed to run ${name}`, e); }
+  };
+
+  safeRun(renderPresetList, "renderPresetList");
+  safeRun(renderCouplingList, "renderCouplingList");
+  safeRun(renderHomeQuickCouplings, "renderHomeQuickCouplings");
+  safeRun(updateVocabBadge, "updateVocabBadge");
+  safeRun(updateStatsUI, "updateStatsUI");
+  safeRun(updateStreakUI, "updateStreakUI");
+  safeRun(renderWelcomeDialog, "renderWelcomeDialog");
+  safeRun(renderBookshelf, "renderBookshelf");
+  
+  try {
+    if (window.PRESET_STORIES && window.PRESET_STORIES.length > 0) {
+      loadContent(window.PRESET_STORIES[0], false); 
+    }
+  } catch(e) {
+    console.error("Failed to load initial content", e);
+  }
+}
+
+// 笏笏 LOCAL STORAGE & INITIAL SETUPS 笏笏
+function loadFromLocalStorage() {
+  // API Key
+  state.apiKey = localStorage.getItem("favo_api_key") || "";
+  if (DOM.apiKeyInput) {
+    DOM.apiKeyInput.value = state.apiKey;
+  }
+  
+  // Load Couplings
+  const savedCouplings = localStorage.getItem("favo_couplings");
+  if (savedCouplings) {
+    try {
+      const parsed = JSON.parse(savedCouplings);
+      if (Array.isArray(parsed)) {
+        state.couplings = parsed;
+      } else {
+        state.couplings = [];
+      }
+    } catch(e) {
+      console.error("Error parsing couplings", e);
+      state.couplings = [];
+    }
+  } else {
+    state.couplings = [];
+  }
+
+  // Filter out any corrupted or legacy coupling entries
+  if (Array.isArray(state.couplings)) {
+    state.couplings = state.couplings.filter(c => c && c.partnerA && c.partnerB);
+  } else {
+    state.couplings = [];
+  }
+
+  // Auto-detect and fix corrupted text from legacy localStorage
+  if (state.couplings.length > 0) {
+    const serialized = JSON.stringify(state.couplings);
+    const hasCorruption = serialized.includes("\ufffd") || 
+                          serialized.includes("­") || 
+                          serialized.includes("") ||
+                          /[謾蜒縺ﾃ蜿]/.test(serialized) ||
+                          state.couplings.some(c => c.relationship && (c.relationship.includes("ﾃ") || c.relationship.includes("蜿")));
+    if (hasCorruption) {
+      console.warn("Corrupted legacy couplings detected. Auto-resetting to default.");
+      state.couplings = [];
+    }
+  }
+
+  // Populate default couplings if none saved
+  if (state.couplings.length === 0) {
+    state.couplings = [
+      {
+        id: "couple-default-1",
+        relationship: "係長と営業部長。社内では秘密の恋人同士。",
+        intimacy: "secret_lovers",
+        partnerA: { name: "Akira", description: "34歳の営業係長。優秀で仕事ができるが、上司のKenjiに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
+        partnerB: { name: "Kenji", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Akiraの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Akiraの猛アプローチに少しタジタジしつつも受け入れる態度。" },
+        episodes: []
+      },
+      {
+        id: "couple-default-2",
+        relationship: "常連の大学生と図書館の主任司書。",
+        intimacy: "slowburn",
+        partnerA: { name: "Riku", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
+        partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥 of 瞳が妖艶で底知れない雰囲気があるが、年下のRikuの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rikuに迫られると照れる大人の口調。" },
+        episodes: []
+      }
+    ];
+    saveToLocalStorage();
+  }
+  
+  state.selectedCouplingId = localStorage.getItem("favo_selected_coupling_id") || (state.couplings[0] ? state.couplings[0].id : "");
+  
+  // Vocab list
+  const savedVocab = localStorage.getItem("favo_vocab_list");
+  if (savedVocab) {
+    try {
+      state.vocabList = JSON.parse(savedVocab);
+    } catch(e) {
+      console.error("Error parsing vocab list", e);
+    }
+  }
+  
+  // Stats & Streak
+  const savedStats = localStorage.getItem("favo_stats");
+  if (savedStats) {
+    try {
+      const parsedStats = JSON.parse(savedStats);
+      state.stats = { ...state.stats, ...parsedStats };
+    } catch(e) {
+      console.error("Error parsing stats", e);
+    }
+  }
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem("favo_api_key", state.apiKey);
+  localStorage.setItem("favo_couplings", JSON.stringify(state.couplings));
+  localStorage.setItem("favo_selected_coupling_id", state.selectedCouplingId);
+  localStorage.setItem("favo_vocab_list", JSON.stringify(state.vocabList));
+  localStorage.setItem("favo_stats", JSON.stringify(state.stats));
+}
+
+// 笏笏 EVENT LISTENERS SETUP 笏笏
+function setupEventListeners() {
+  // View switches
+  DOM.tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const targetView = tab.getAttribute("data-view");
+      switchView(targetView);
+    });
+  });
+
+  // Home CTA Buttons
+  const btnHomeToReader = document.getElementById("btn-home-to-reader");
+  if (btnHomeToReader) {
+    btnHomeToReader.addEventListener("click", () => {
+      switchView("view-reader");
+    });
+  }
+  
+  const btnHomeToGen = document.getElementById("btn-home-to-generator");
+  if (btnHomeToGen) {
+    btnHomeToGen.addEventListener("click", () => {
+      switchView("view-generator");
+    });
+  }
+
+  // Welcome panel click to refresh dialogue
+  const welcomePanel = document.getElementById("home-welcome-panel");
+  if (welcomePanel) {
+    welcomePanel.addEventListener("click", () => {
+      renderWelcomeDialog();
+    });
+  }
+
+  // Track API Key input changes
+  DOM.apiKeyInput.addEventListener("input", (e) => {
+    state.apiKey = e.target.value.trim();
+    saveToLocalStorage();
+  });
+
+  // Audio Controls
+  DOM.btnAudioPlay.addEventListener("click", startAudio);
+  DOM.btnAudioStop.addEventListener("click", stopAudio);
+  DOM.audioSpeedSelect.addEventListener("change", (e) => {
+    state.speechSpeed = parseFloat(e.target.value);
+    if (state.speechUtterance && window.speechSynthesis.speaking) {
+      stopAudio();
+      startAudio();
+    }
+  });
+
+  // Display Mode Buttons
+  DOM.btnModeEn.addEventListener("click", () => {
+    DOM.btnModeEn.classList.add("active");
+    DOM.btnModeParallel.classList.remove("active");
+    DOM.readerContentJapanese.style.display = "none";
+  });
+
+  DOM.btnModeParallel.addEventListener("click", () => {
+    DOM.btnModeParallel.classList.add("active");
+    DOM.btnModeEn.classList.remove("active");
+    DOM.readerContentJapanese.style.display = "block";
+  });
+
+  DOM.btnStudyMode.addEventListener("click", () => {
+    state.studyModeActive = !state.studyModeActive;
+    DOM.btnStudyMode.classList.toggle("active", state.studyModeActive);
+    toggleStudyModeHighlights();
+  });
+
+  // Popup Close
+  DOM.popClose.addEventListener("click", closePopover);
+  DOM.popBtnAddVocab.addEventListener("click", savePopoverWordToVocab);
+
+  // Close popup if clicking outside
+  document.addEventListener("click", (e) => {
+    if (!DOM.globalVocabPopup.contains(e.target) && !e.target.classList.contains("word-tap")) {
+      closePopover();
+    }
+  });
+
+  // Vocab Flashcard interactions
+  DOM.vocabFlipperContainer.addEventListener("click", () => {
+    DOM.vocabFlipperContainer.classList.toggle("flipped");
+  });
+
+  DOM.btnVocabKnow.addEventListener("click", () => {
+    handleVocabResponse(true);
+  });
+
+  DOM.btnVocabForgot.addEventListener("click", () => {
+    handleVocabResponse(false);
+  });
+
+  // Stats only reset
+  DOM.btnResetOnlyStats.addEventListener("click", () => {
+    if (confirm("学習データを初期化しますか？\n読了ストーリー数、クイズ正解率、および連続学習日数（ストリーク）の記録がゼロに戻ります。登録したカップリングや連載履歴は消えません。")) {
+      state.stats = { totalRead: 0, totalCorrect: 0, totalQuizzes: 0, streak: 0, lastReadDate: "" };
+      state.vocabList = [];
+
+      saveToLocalStorage();
+      updateVocabBadge();
+      updateStatsUI();
+      updateStreakUI();
+      renderVocabDeck();
+      alert("学習状況をリセットしました！");
+    }
+  });
+
+  // Couplings and stories reset
+  DOM.btnResetOnlyCouplings.addEventListener("click", () => {
+    if (confirm("すべてのカップリングと連載履歴を初期化しますか？\n登録したカスタムカップリング、連載中の履歴（あらすじ）が消去され、デフォルトの「年下（攻）×年上（受）」設定に戻します。学習日数や成績記録は消えません。")) {
+      state.couplings = [
+        {
+          id: "couple-default-1",
+          relationship: "係長と営業部長。社内では秘密の恋人同士。",
+          partnerA: { name: "Akira", description: "34歳の営業係長。優秀で仕事ができるが、上司のKenjiに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
+          partnerB: { name: "Kenji", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Akiraの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Akiraの猛アプローチに少しタジタジしつつも受け入れる態度。" },
+          episodes: []
+        },
+        {
+          id: "couple-default-2",
+          relationship: "常連の大学生と図書館の主任司書。",
+          partnerA: { name: "Riku", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
+          partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥 of 瞳が妖艶で底知れない雰囲気があるが、年下のRikuの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rikuに迫られると照れる大人の口調。" },
+          episodes: []
+        }
+      ];
+      state.selectedCouplingId = state.couplings[0].id;
+
+      saveToLocalStorage();
+      renderCouplingList();
+      renderBookshelf();
+      renderHomeQuickCouplings();
+      alert("カップリングおよび連載履歴を初期化し、デフォルトの「年下×年上」設定に戻しました！");
+    }
+  });
+
+  // ── COUPLING MANAGER EVENT BINDINGS ──
+
+  // New Coupling Add Toggle
+  DOM.btnAddCoupling.addEventListener("click", () => {
+    openCouplingEditor();
+  });
+
+  DOM.btnCancelCoupling.addEventListener("click", () => {
+    closeCouplingEditor();
+  });
+
+  DOM.btnSaveCoupling.addEventListener("click", handleSaveCoupling);
+
+  if (DOM.btnGenerateByTags) {
+    DOM.btnGenerateByTags.addEventListener("click", handleGenerateByTags);
+  }
+}
+
+// Switch view helper
+function switchView(viewId) {
+  state.currentView = viewId;
+  DOM.views.forEach(view => {
+    view.classList.toggle("active", view.id === viewId);
+  });
+  
+  DOM.tabs.forEach(tab => {
+    const matches = tab.getAttribute("data-view") === viewId;
+    tab.classList.toggle("active", matches);
+  });
+
+  window.scrollTo({ top: 0, behavior: "instant" });
+
+  if (viewId !== "view-reader") {
+    stopAudio();
+  }
+  if (viewId === "view-vocab") {
+    renderVocabDeck();
+  }
+  if (viewId === "view-home") {
+    updateStatsUI();
+    updateStreakUI();
+    renderWelcomeDialog();
+    renderHomeQuickCouplings();
+  }
+  if (viewId === "view-generator") {
+    renderBookshelf();
+  }
+}
+
+// 属性タグによる生成用データベース
+const ATTRIBUTE_DATABASE = {
+  names: {
+    seme: ["Leo", "Julian", "Ren", "Riku", "Kai", "Shin", "Ian", "Noah", "Ethan", "Oliver", "Lucas", "Liam", "Daniel", "Dylan", "Austin", "Tyler", "Evan", "Nathan", "Aiden", "Cole"],
+    uke: ["Arthur", "Kenji", "Haruto", "Yuki", "Sora", "Masaki", "Kei", "Eliot", "Liam", "Oliver", "Noel", "Rin", "Aoi", "Toma", "Leon", "Felix", "Nico", "Jude", "Milo", "Toby"]
+  },
+  situations: {
+    "sit-school": { label: "学園もの", phrase: "学園生活を舞台にした", intimacy: "slowburn" },
+    "sit-uniform": { label: "制服", phrase: "お揃いの制服に身を包んだ", intimacy: "slowburn" },
+    "sit-suit": { label: "スーツ", phrase: "スーツ姿でビシッと決めた", intimacy: "established" },
+    "sit-office": { label: "オフィスもの", phrase: "オフィスでの日々の仕事に追われる", intimacy: "secret_lovers" },
+    "sit-military": { label: "軍人", phrase: "規律厳しき軍隊や戦場を背景にした", intimacy: "established" },
+    "sit-historical": { label: "時代物", phrase: "歴史とロマンが漂う情緒溢れる時代での", intimacy: "slowburn" },
+    "sit-master-servant": { label: "主従関係", phrase: "絶対的な上下関係に縛られた主従関係の", intimacy: "secret_lovers" },
+    "sit-butler": { label: "執事", phrase: "献身的に主に仕える執事と主人の関係の", intimacy: "slowburn" },
+    "sit-owner": { label: "オーナー", phrase: "店や土地のオーナーと雇用関係にある", intimacy: "established" },
+    "sit-gijinka": { label: "擬人化", phrase: "本来人ではない存在が人の姿を得て関わり合う", intimacy: "slowburn" },
+    "sit-nonhuman": { label: "人外", phrase: "人間と人外の種族や常識を超えた", intimacy: "slowburn" }
+  },
+  features: {
+    "feat-glasses": { label: "メガネ", desc: "知的なメガネをかけている。" },
+    "feat-crossdress": { label: "女装", desc: "訳あって時に可憐な女装姿を見せる。" },
+    "feat-age-gap": { label: "年の差", desc: "互いに大きな年齢差があり、それが独特の距離感を生んでいる。" },
+    "feat-younger-seme": { label: "年下攻", desc: "年齢は下だが男気がありリードする年下攻め。" },
+    "feat-older-uke": { label: "オジサン受", desc: "渋さと哀愁を漂わせる大人のオジサン受け。" },
+    "feat-shota": { label: "ショタ", desc: "あどけない少年のような無垢な魅力を持つ。" },
+    "feat-gekokujo": { label: "下克上", desc: "身分や社会的な立場での格差をひっくり返す下克上タイプ。" },
+    "feat-reversable": { label: "リバ", desc: "状況に応じて攻めと受けの立ち位置が柔軟に入れ替わる関係。" }
+  },
+  personalities: {
+    "rel-friend": { 
+      label: "親友", 
+      desc: "何でも気兼ねなく相談できる強い絆で結ばれた親友同士。", 
+      speechSeme: "フランクで遠慮のない友達口調。「おい、○○」と親しげに呼ぶ。",
+      speechUke: "素直に何でも話せる親友の口調。相手を「○○」と名前で呼ぶ。"
+    },
+    "rel-rival": { 
+      label: "ライバル", 
+      desc: "互いに実力を認め合いながらも、事あるごとに張り合うライバル同士。",
+      speechSeme: "不敵で強気なライバル口調。「フッ、○○、負ける気はないからな」",
+      speechUke: "プライドが高く競い合う口調。「フン、○○こそ、足元をすくわれないようにね」"
+    },
+    "rel-childhood": { 
+      label: "幼馴染み", 
+      desc: "幼い頃からずっと一緒に過ごし、お互いの弱みも知り尽くしている幼馴染み。",
+      speechSeme: "少し照れくさそうな、幼馴染みならではの甘えと独占欲が入り混じる口調。",
+      speechUke: "昔からの関係で無防備に接する安心しきった口調。"
+    },
+    "rel-tsundere": { 
+      label: "ツンデレ", 
+      desc: "本当は好意があるのに照れ隠しで冷たく接してしまい、後から後悔するツンデレな性格。",
+      speechSeme: "「べ、別にお前のためだけにやったわけじゃない…！」とそっけない態度をとる。",
+      speechUke: "「フン、勘違いしないでよね…！」と頬を染めて反論するツンデレ口調。"
+    },
+    "rel-oresama": { 
+      label: "オレ様", 
+      desc: "自信家で尊大、常に主導権を握りたがるオレ様タイプ。",
+      speechSeme: "傲慢で余裕に満ちた命令口調。「お前は黙って俺に従っていればいいんだよ」",
+      speechUke: "強引さに呆れつつも従う、少し反抗的なオレ様いなし口調。"
+    },
+    "rel-supadari": { 
+      label: "スパダリ", 
+      desc: "容姿・スペック・包容力のすべてが完璧で、相手を溺愛するスーパーダーリン。",
+      speechSeme: "優雅で余裕たっぷり、深い愛で相手を包み込むスパダリ敬語。「君のすべてを私に委ねて」",
+      speechUke: "スパダリの完璧さに照れながらも甘える愛され口調。"
+    },
+    "rel-dog": { 
+      label: "ワンコ", 
+      desc: "人懐っこく真っ直ぐに懐き、相手への好意を全身で表現するワンコ系。",
+      speechSeme: "「○○さん！ずっと待ってたんですよ！」と尻尾を振るような元気な敬語口調。",
+      speechUke: "「よしよし」と頭を優しく撫でる口調。"
+    },
+    "rel-wet-noodle": { 
+      label: "ヘタレ攻", 
+      desc: "相手のことが好きすぎるあまり、肝心なところで弱気になってしまうヘタレな攻め。",
+      speechSeme: "「う、嬉しくて緊張しちゃって…嫌われないかな」とオドオドしながらも離さない口調。",
+      speechUke: "ヘタレさにため息をつきつつ、自分からリードしてあげる優しい口調。"
+    },
+    "rel-possessive": { 
+      label: "独占欲", 
+      desc: "他の誰にも触れさせたくない、自分だけのものにしておきたいという非常に強い独占欲を持つ。",
+      speechSeme: "「お前の目には俺だけが映っていればいいんだ」と低い声で囁く重い独占欲口調。",
+      speechUke: "束縛に戸惑いつつも、深く愛されていることに悦びを感じる口調。"
+    },
+    "rel-yandere": { 
+      label: "ヤンデレ", 
+      desc: "愛が深すぎるあまりに精神的な脆さを見せ、執着心が極限に達しているヤンデレ。",
+      speechSeme: "「ねえ○○、僕以外の人間と話さないで…お願いだよ？」と冷徹な熱情を隠す口調。",
+      speechUke: "「君が壊れてしまいそうで怖いよ」と気圧されながらも抱きとめる口調。"
+    }
+  },
+  tones: {
+    "tone-sweet": { label: "甘々", phrase: "終始お互いを甘やかし合い、砂糖を吐き出すように甘く甘美な日常。", intimacy: "established" },
+    "tone-romcom": { label: "ラブコメ", phrase: "誤解やすれ違いを挟みつつも、にぎやかに愛を育むドタバタなラブコメディ。", intimacy: "slowburn" },
+    "tone-cozy": { label: "ほのぼの", phrase: "お互いの温もりを感じながら穏やかに穏やかに過ぎていくほのぼのとした時間。", intimacy: "slowburn" },
+    "tone-gag": { label: "ギャグ", phrase: "ボケとツッコミが絶えず、奇想天外な出来事に巻き込まれるテンポの良いギャグコメディ。", intimacy: "strangers" }
+  }
+};
+
+function handleGenerateByTags() {
+  const checkedTags = [];
+  const checkboxes = document.querySelectorAll(".coupling-tag");
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      checkedTags.push(cb.value);
+    }
+  });
+
+  const situationTags = checkedTags.filter(t => t.startsWith("sit-"));
+  const featureTags = checkedTags.filter(t => t.startsWith("feat-"));
+  const personalityTags = checkedTags.filter(t => t.startsWith("rel-"));
+  const toneTags = checkedTags.filter(t => t.startsWith("tone-"));
+
+  let nameA = "";
+  let nameB = "";
+  const semeNamePool = ATTRIBUTE_DATABASE.names.seme;
+  const ukeNamePool = ATTRIBUTE_DATABASE.names.uke;
+  nameA = semeNamePool[Math.floor(Math.random() * semeNamePool.length)];
+  do {
+    nameB = ukeNamePool[Math.floor(Math.random() * ukeNamePool.length)];
+  } while (nameA === nameB);
+
+  let sitTag = "";
+  let sitPhrase = "";
+  let currentIntimacy = "slowburn";
+  
+  if (situationTags.length > 0) {
+    sitTag = situationTags[Math.floor(Math.random() * situationTags.length)];
+    const sitInfo = ATTRIBUTE_DATABASE.situations[sitTag];
+    sitPhrase = sitInfo.phrase;
+    currentIntimacy = sitInfo.intimacy;
+  } else {
+    const keys = Object.keys(ATTRIBUTE_DATABASE.situations);
+    sitTag = keys[Math.floor(Math.random() * keys.length)];
+    const sitInfo = ATTRIBUTE_DATABASE.situations[sitTag];
+    sitPhrase = sitInfo.phrase;
+    currentIntimacy = sitInfo.intimacy;
+  }
+
+  let selectedFeatures = [];
+  let featureDescs = [];
+  if (featureTags.length > 0) {
+    selectedFeatures = [...featureTags];
+  } else {
+    if (Math.random() < 0.3) {
+      const keys = Object.keys(ATTRIBUTE_DATABASE.features);
+      selectedFeatures.push(keys[Math.floor(Math.random() * keys.length)]);
+    }
+  }
+  selectedFeatures.forEach(tag => {
+    const feat = ATTRIBUTE_DATABASE.features[tag];
+    if (feat) featureDescs.push(feat.desc);
+  });
+
+  let pSemeTag = "";
+  let pUkeTag = "";
+  let selectedPersonalities = [];
+  
+  if (personalityTags.length > 0) {
+    selectedPersonalities = [...personalityTags];
+    pSemeTag = selectedPersonalities[0];
+    pUkeTag = selectedPersonalities[1] || selectedPersonalities[0];
+  } else {
+    const keys = Object.keys(ATTRIBUTE_DATABASE.personalities);
+    pSemeTag = keys[Math.floor(Math.random() * keys.length)];
+    do {
+      pUkeTag = keys[Math.floor(Math.random() * keys.length)];
+    } while (pSemeTag === pUkeTag && keys.length > 1);
+  }
+
+  const semeP = ATTRIBUTE_DATABASE.personalities[pSemeTag];
+  const ukeP = ATTRIBUTE_DATABASE.personalities[pUkeTag];
+
+  let tonePhrase = "";
+  if (toneTags.length > 0) {
+    const tTag = toneTags[Math.floor(Math.random() * toneTags.length)];
+    const toneInfo = ATTRIBUTE_DATABASE.tones[tTag];
+    tonePhrase = toneInfo.phrase;
+    currentIntimacy = toneInfo.intimacy;
+  } else {
+    const keys = Object.keys(ATTRIBUTE_DATABASE.tones);
+    const tTag = keys[Math.floor(Math.random() * keys.length)];
+    tonePhrase = ATTRIBUTE_DATABASE.tones[tTag].phrase;
+  }
+
+  const getLabelShort = (tag, dbGroup) => {
+    return dbGroup[tag] ? dbGroup[tag].label : "";
+  };
+  
+  const semeLabel = getLabelShort(pSemeTag, ATTRIBUTE_DATABASE.personalities);
+  const ukeLabel = getLabelShort(pUkeTag, ATTRIBUTE_DATABASE.personalities);
+  
+  const relationshipText = `${sitPhrase}${semeLabel}攻め${nameA}と、${ukeLabel}受け${nameB}の関係。${tonePhrase}`;
+
+  let semeDescParts = [
+    `${nameA}。性格は${semeP.desc}`,
+    ...featureDescs.slice(0, 1)
+  ];
+  const semeDescText = semeDescParts.filter(Boolean).join(" ");
+  const semeSpeechText = (semeP.speechSeme || "丁寧で落ち着いたトーン。").replace("○○", nameB);
+
+  let ukeDescParts = [
+    `${nameB}。性格は${ukeP.desc}`,
+    ...featureDescs.slice(1, 2)
+  ];
+  if (ukeDescParts.length === 1 && featureDescs.length > 0 && Math.random() < 0.5) {
+    ukeDescParts.push(featureDescs[0]);
+  }
+  const ukeDescText = ukeDescParts.filter(Boolean).join(" ");
+  const ukeSpeechText = (ukeP.speechUke || "親しみやすい大人の口調。").replace("○○", nameA);
+
+  DOM.editCoupleRel.value = relationshipText;
+  DOM.editCoupleIntimacy.value = currentIntimacy;
+  
+  DOM.editCharAName.value = nameA;
+  DOM.editCharADesc.value = semeDescText;
+  DOM.editCharASpeech.value = semeSpeechText;
+  
+  DOM.editCharBName.value = nameB;
+  DOM.editCharBDesc.value = ukeDescText;
+  DOM.editCharBSpeech.value = ukeSpeechText;
+}
+
+function openCouplingEditor(coupleId = "") {
+  DOM.couplingEditPanel.style.display = "block";
+  DOM.couplingEditPanel.scrollIntoView({ behavior: "smooth" });
+
+  const titleEl = document.getElementById("coupling-editor-title");
+  
+  if (coupleId) {
+    // Edit Mode
+    titleEl.innerText = "👥 カップリングを編集";
+    const couple = state.couplings.find(c => c.id === coupleId);
+    
+    DOM.editCoupleId.value = couple.id;
+    DOM.editCoupleRel.value = couple.relationship;
+    DOM.editCharAName.value = couple.partnerA.name;
+    DOM.editCharADesc.value = couple.partnerA.description;
+    DOM.editCharASpeech.value = couple.partnerA.speechStyle;
+    DOM.editCharBName.value = couple.partnerB.name;
+    DOM.editCharBDesc.value = couple.partnerB.description;
+    DOM.editCharBSpeech.value = couple.partnerB.speechStyle;
+  } else {
+    // Add Mode
+    titleEl.innerText = "👥 新しいカップリングを追加";
+    
+    DOM.editCoupleId.value = "";
+    DOM.editCoupleRel.value = "";
+    DOM.editCharAName.value = "";
+    DOM.editCharADesc.value = "";
+    DOM.editCharASpeech.value = "";
+    DOM.editCharBName.value = "";
+    DOM.editCharBDesc.value = "";
+    DOM.editCharBSpeech.value = "";
+  }
+}
+
+// Close Coupling Editor
+function closeCouplingEditor() {
+  DOM.couplingEditPanel.style.display = "none";
+}
+
+// Handle Save Coupling
+function handleSaveCoupling() {
+  const coupleId = DOM.editCoupleId.value;
+  const rel = DOM.editCoupleRel.value.trim();
+  const charAName = DOM.editCharAName.value.trim();
+  const charADesc = DOM.editCharADesc.value.trim();
+  const charASpeech = DOM.editCharASpeech.value.trim();
+  const charBName = DOM.editCharBName.value.trim();
+  const charBDesc = DOM.editCharBDesc.value.trim();
+  const charBSpeech = DOM.editCharBSpeech.value.trim();
+
+  if (!charAName || !charBName) {
+    alert("攻めキャラと受けキャラの名前は必須入力項目です！");
+    return;
+  }
+
+  if (coupleId) {
+    // Edit existing coupling
+    const couple = state.couplings.find(c => c.id === coupleId);
+    couple.relationship = rel;
+    couple.partnerA.name = charAName;
+    couple.partnerA.description = charADesc;
+    couple.partnerA.speechStyle = charASpeech;
+    couple.partnerB.name = charBName;
+    couple.partnerB.description = charBDesc;
+    couple.partnerB.speechStyle = charBSpeech;
+  } else {
+    // Create new coupling
+    const newCouple = {
+      id: "couple-" + Date.now(),
+      relationship: rel || `${charAName}×${charBName}`,
+      partnerA: { name: charAName, description: charADesc, speechStyle: charASpeech },
+      partnerB: { name: charBName, description: charBDesc, speechStyle: charBSpeech },
+      episodes: []
+    };
+    state.couplings.push(newCouple);
+    state.selectedCouplingId = newCouple.id; // select new couple automatically
+  }
+
+  saveToLocalStorage();
+  renderCouplingList();
+  populateCouplingSelect();
+  updateGeneratorSeriesUI();
+  closeCouplingEditor();
+  alert("カップリング設定を保存しました。");
+}
+
+// Render Coupling List
+function renderCouplingList() {
+  DOM.couplingListContainer.innerHTML = "";
+  
+  state.couplings.forEach(couple => {
+    const card = document.createElement("div");
+    card.className = "preset-card";
+    card.style.display = "block";
+    card.style.cursor = "default";
+    
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+        <h4 style="font-size: 15px; color: var(--accent-light);">
+          ${couple.partnerA.name}×${couple.partnerB.name}
+        </h4>
+        <div>
+          <button class="pill-btn btn-edit-couple" data-id="${couple.id}" style="padding: 2px 8px; font-size: 10px;">編集</button>
+          <button class="pill-btn btn-delete-couple" data-id="${couple.id}" style="padding: 2px 8px; font-size: 10px; border-color: var(--error-bg); color: var(--error);">削除</button>
+        </div>
+      </div>
+      <p style="font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 4px;">関係性: ${couple.relationship}</p>
+      <p style="font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">
+        親密度: ${
+          (() => {
+            const labels = {
+              strangers: "出会ったばかり・ライバル",
+              crush: "片想い・意識し合っている",
+              slowburn: "両片想い・じれったい距離感",
+              secret_lovers: "秘密の恋人・隠れていちゃつく",
+              established: "安定した恋人・深い愛 (肉体関係あり)"
+            };
+            return labels[couple.intimacy] || "両片想い・じれったい距離感";
+          })()
+        }
+      </p>
+      <p style="font-size: 11px; color: var(--text-muted); line-height: 1.45;">
+        <strong>攻めプロフ:</strong> ${couple.partnerA.description || 'なし'}<br>
+        <strong>受けプロフ:</strong> ${couple.partnerB.description || 'なし'}
+      </p>
+    `;
+    
+    const editBtn = card.querySelector(".btn-edit-couple");
+    editBtn.addEventListener("click", () => {
+      openCouplingEditor(couple.id);
+    });
+    
+    const deleteBtn = card.querySelector(".btn-delete-couple");
+    deleteBtn.addEventListener("click", () => {
+      if (confirm("このカップリング設定を削除しますか？")) {
+        state.couplings = state.couplings.filter(c => c.id !== couple.id);
+        if (state.selectedCouplingId === couple.id) {
+          state.selectedCouplingId = state.couplings[0] ? state.couplings[0].id : "";
+        }
+        saveToLocalStorage();
+        renderCouplingList();
+        populateCouplingSelect();
+        updateGeneratorSeriesUI();
+        renderHomeQuickCouplings();
+      }
+    });
+    
+    DOM.couplingListContainer.appendChild(card);
+  });
+}
+
+// Populate Coupling dropdown
+// ── RENDER BOOKSHELF (本棚画面) ──
+function renderBookshelf() {
+  if (!DOM.bookshelfContainer) return;
+  DOM.bookshelfContainer.innerHTML = "";
+
+  if (state.couplings.length === 0) {
+    DOM.bookshelfContainer.innerHTML = `
+      <div class="panel" style="text-align: center; padding: 32px; color: var(--text-muted);">
+        <p style="font-size: 15px; font-weight: bold; margin-bottom: 6px;">本棚が空っぽです</p>
+        <p style="font-size: 12px; margin-bottom: 16px;">設定タブからカップリングを登録すると、ここに連載本棚が作られます。</p>
+        <button class="btn-secondary" id="btn-bookshelf-go-config" style="padding: 8px 16px; font-size: 12px; margin: 0 auto; display: inline-flex;">⚙️ 設定を開く</button>
+      </div>
+    `;
+    const goConfigBtn = document.getElementById("btn-bookshelf-go-config");
+    if (goConfigBtn) {
+      goConfigBtn.addEventListener("click", () => {
+        switchView("view-char-maker");
+      });
+    }
+    return;
+  }
+
+  state.couplings.forEach((couple) => {
+    const card = document.createElement("div");
+    card.className = "bookshelf-couple-card";
+
+    const episodes = couple.episodes || [];
+    const nextEpNum = episodes.length + 1;
+    const hasEpisodes = episodes.length > 0;
+
+    // Build history summary text
+    const historyText = hasEpisodes
+      ? episodes.map(ep => `【第${ep.episodeNumber}話】${ep.summary}`).join("\n")
+      : "まだエピソード履歴がありません。生成するとこれが第1話になります。";
+
+    card.innerHTML = `
+      <div class="bookshelf-title-row">
+        <h4 class="bookshelf-couple-name">
+          👥 ${couple.partnerA.name}×${couple.partnerB.name}
+        </h4>
+        <span class="preset-badge badge-story" style="font-size: 10px; padding: 3px 8px; font-weight: 700;">
+          ${hasEpisodes ? `連載中: 第${episodes.length}話まで` : "未連載"}
+        </span>
+      </div>
+
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">これまでのあらすじ</div>
+        <div class="bookshelf-history-box">${historyText}</div>
+      </div>
+
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">連載アーカイブ (クリックで再読)</div>
+        <div class="bookshelf-archive-list"></div>
+      </div>
+
+      <div class="bookshelf-action-row">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <label style="font-size: 11px; font-weight: bold; color: var(--text-muted);">次話レベル:</label>
+          <select class="bookshelf-level-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+            <option value="pre2">準2級</option>
+            <option value="grade2">2級</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-bookshelf-write" style="flex: 1; padding: 6px 14px; font-size: 12px; min-height: 28px; border-radius: var(--radius-pill); cursor: pointer;">
+          ✨ 続きを生成する (第${nextEpNum}話)
+        </button>
+      </div>
+    `;
+
+    // Render past episodes library
+    const archiveList = card.querySelector(".bookshelf-archive-list");
+    if (hasEpisodes) {
+      episodes.forEach((ep) => {
+        const item = document.createElement("div");
+        item.className = "preset-card";
+        item.style.padding = "10px 14px";
+        item.style.marginBottom = "8px";
+        item.style.cursor = "pointer";
+
+        item.innerHTML = `
+          <div class="preset-info">
+            <h5 style="font-size: 13px; font-weight: 700; color: var(--accent-light); margin: 0;">${ep.title}</h5>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">第${ep.episodeNumber}話 • ${ep.level === "pre2" ? "準2級" : "2級"} • ${ep.summary}</p>
+          </div>
+          <span class="preset-badge badge-story" style="font-size: 9px; padding: 2px 6px;">第${ep.episodeNumber}話</span>
+        `;
+
+        item.onclick = () => {
+          loadContent(ep, false);
+          switchView("view-reader");
+        };
+
+        archiveList.appendChild(item);
+      });
+    } else {
+      archiveList.innerHTML = `<div style="font-size: 11px; color: var(--text-dimmed); text-align: center; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-sm);">まだエピソード履歴がありません。「続きを生成」するか、ホーム画面から第1話を生成してください。</div>`;
+    }
+
+    // Bind "Write Next" button
+    const writeBtn = card.querySelector(".btn-bookshelf-write");
+    writeBtn.addEventListener("click", async () => {
+      const levelSelect = card.querySelector(".bookshelf-level-select");
+
+      state.selectedCouplingId = couple.id;
+      state.generationMode = "series";
+
+      // Trigger series generation
+      const options = {
+        level: levelSelect.value,
+        type: "story", // Series continuation is always a story
+        trope: "Continuation of the previous story", // Heuristically set trope
+        customTrope: "",
+        mode: "series",
+        onStart: () => {
+          writeBtn.disabled = true;
+          writeBtn.innerText = "✍️ 執筆中...";
+        },
+        onEnd: () => {
+          writeBtn.disabled = false;
+          writeBtn.innerText = `✨ 続きを生成する (第${nextEpNum}話)`;
+        }
+      };
+
+      await handleGeneration(options);
+    });
+
+    DOM.bookshelfContainer.appendChild(card);
+  });
+}
+
+// ── DYNAMIC GENERATION HANDLER ──
+async function handleGeneration(customOptions = {}) {
+  if (!state.apiKey) {
+    alert("Gemini API キーを設定してください。(「設定」タブで登録できます。)");
+    return;
+  }
+
+  const currentCouple = state.couplings.find(c => c.id === state.selectedCouplingId);
+  if (!currentCouple) {
+    alert("カップリングが登録されていません。設定タブで追加してください。");
+    return;
+  }
+
+  // Set default values if not provided in customOptions
+  const nextEpisodeNum = currentCouple.episodes.length + 1;
+  const historySummary = currentCouple.episodes.map(ep => ep.summary).join(" ");
+
+  const options = {
+    apiKey: state.apiKey,
+    charA: currentCouple.partnerA,
+    charB: currentCouple.partnerB,
+    relationship: currentCouple.relationship,
+    intimacy: currentCouple.intimacy || "slowburn",
+    level: customOptions.level || "pre2",
+    type: customOptions.type || "story",
+    trope: customOptions.trope || "Working late at the office together",
+    customTrope: (customOptions.customTrope || "").trim(),
+    mode: customOptions.mode || "standalone",
+    episodeNumber: nextEpisodeNum,
+    historySummary: historySummary
+  };
+
+  // Call onStart callback if provided
+  if (customOptions.onStart) {
+    customOptions.onStart();
+  }
+
+  try {
+    const generated = await window.generateEnglishMaterial(options);
+    
+    // Save to series episodes if in series mode
+    if (options.mode === "series") {
+      const newEpisode = {
+        id: "ep-" + Date.now(),
+        episodeNumber: nextEpisodeNum,
+        title: generated.title,
+        english: generated.english,
+        japanese: generated.japanese,
+        summary: generated.summary || "エピソードが完了しました。",
+        words: generated.words,
+        grammarExplanations: generated.grammarExplanations,
+        questions: generated.questions,
+        level: generated.level,
+        situation: generated.situation || options.trope,
+        wordCount: generated.wordCount
+      };
+      
+      currentCouple.episodes.push(newEpisode);
+      saveToLocalStorage();
+      
+      // Refresh Bookshelf UI
+      renderBookshelf();
+    }
+
+    loadContent(generated, true); 
+    switchView("view-reader");
+    
+    state.stats.totalRead++;
+    saveToLocalStorage();
+    updateStatsUI();
+  } catch (error) {
+    alert("生成中にエラーが発生しました。APIキーを確認するか、時間をおいて再試行してください。\n詳細: " + error.message);
+  } finally {
+    // Call onEnd callback if provided
+    if (customOptions.onEnd) {
+      customOptions.onEnd();
+    }
+  }
+}
+
+// ── RENDER HOME QUICK GENERATOR (今日の二人) ──
+function renderHomeQuickCouplings() {
+  if (!DOM.homeQuickCouplingsContainer) return;
+  DOM.homeQuickCouplingsContainer.innerHTML = "";
+
+  if (state.couplings.length === 0) {
+    DOM.homeQuickCouplingsContainer.innerHTML = `<div style="font-size: 12px; color: var(--text-dimmed); text-align: center; padding: 12px;">設定タブからカップリングを登録してください</div>`;
+    return;
+  }
+
+  state.couplings.forEach((couple) => {
+    if (!couple || !couple.partnerA || !couple.partnerB) return;
+    const card = document.createElement("div");
+    card.className = "preset-card-today";
+    card.style.flexDirection = "column";
+    card.style.alignItems = "stretch";
+    card.style.gap = "12px";
+    card.style.cursor = "default";
+
+    const epCount = couple.episodes ? couple.episodes.length : 0;
+    const badgeText = epCount > 0 ? `連載中: 第${epCount}話まで` : "新規ストーリー";
+
+    let selectedTrope = "Working late at the office together";
+
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+        <h4 style="font-size: 16px; color: var(--accent); font-weight: 800; margin: 0;">
+          ${couple.partnerA.name}×${couple.partnerB.name}
+        </h4>
+        <span class="preset-badge badge-story" style="font-size: 9px; padding: 2px 6px;">${badgeText}</span>
+      </div>
+      
+      <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.4;">
+        <strong>関係性:</strong> ${couple.relationship}
+      </p>
+
+      <div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">シチュエーションを選択</div>
+        <div class="quick-trope-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="pill-btn quick-trope-btn active" data-trope="Working late at the office together" style="font-size: 11px; padding: 4px 10px;">残業オフィス</button>
+          <button class="pill-btn quick-trope-btn" data-trope="Sharing a taxi in the rain after a business dinner" style="font-size: 11px; padding: 4px 10px;">雨のタクシー</button>
+          <button class="pill-btn quick-trope-btn" data-trope="Only one bed at the hotel" style="font-size: 11px; padding: 4px 10px;">ホテルで1ベッド</button>
+          <button class="pill-btn quick-trope-btn" data-trope="random" style="font-size: 11px; padding: 4px 10px;">🎲 ランダム</button>
+          <button class="pill-btn quick-trope-btn" data-trope="custom" style="font-size: 11px; padding: 4px 10px;">✏️ カスタム</button>
+        </div>
+      </div>
+
+      <!-- 詳細設定 (折りたたみ) -->
+      <details class="home-detail-settings">
+        <summary>詳細設定 ⚙️</summary>
+        <div class="detail-settings-content">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 11px; margin-bottom: 4px;">教材のタイプ</label>
+            <select class="quick-type-select" style="width: 100%; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+              <option value="story" selected>ショートストーリー (SS) - 掛け合いと心理描写</option>
+              <option value="essay">カルチャー・シチュエーション解説エッセイ</option>
+            </select>
+          </div>
+          <div class="form-group quick-custom-trope-group" style="display: none; margin-bottom: 0; margin-top: 6px;">
+            <label style="font-size: 11px; margin-bottom: 4px;">カスタムシチュエーション (日本語/英語)</label>
+            <textarea class="quick-custom-trope" rows="2" placeholder="例：風邪を引いた部下Akiraの家へお見舞いに行くKenji部長..." style="width: 100%; font-size: 11px; padding: 6px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); resize: vertical;"></textarea>
+          </div>
+        </div>
+      </details>
+
+      <div style="display: flex; gap: 10px; align-items: center; border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <select class="quick-level-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+            <option value="pre2">準2級</option>
+            <option value="grade2">2級</option>
+          </select>
+          <select class="quick-mode-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+            <option value="standalone">単発</option>
+            <option value="series" ${epCount > 0 ? 'selected' : ''}>連載</option>
+          </select>
+        </div>
+
+        <button class="btn-primary btn-quick-gen" style="flex: 1; padding: 6px 14px; font-size: 12px; min-height: 28px; border-radius: var(--radius-pill); cursor: pointer;">
+          ✨ 今日の二人
+        </button>
+      </div>
+    `;
+
+    const tropeButtons = card.querySelectorAll(".quick-trope-btn");
+    const customTropeGroup = card.querySelector(".quick-custom-trope-group");
+    const customTropeTextarea = card.querySelector(".quick-custom-trope");
+    const detailsEl = card.querySelector(".home-detail-settings");
+
+    tropeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tropeButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedTrope = btn.getAttribute("data-trope");
+
+        if (selectedTrope === "custom") {
+          customTropeGroup.style.display = "block";
+          detailsEl.open = true;
+          customTropeTextarea.focus();
+        } else {
+          customTropeGroup.style.display = "none";
+        }
+      });
+    });
+
+    const genBtn = card.querySelector(".btn-quick-gen");
+    genBtn.addEventListener("click", async () => {
+      const levelSelect = card.querySelector(".quick-level-select");
+      const modeSelect = card.querySelector(".quick-mode-select");
+      const typeSelect = card.querySelector(".quick-type-select");
+      const customTropeVal = customTropeTextarea.value.trim();
+
+      if (selectedTrope === "custom" && !customTropeVal) {
+        alert("カスタムシチュエーションを入力してください。");
+        customTropeTextarea.focus();
+        return;
+      }
+
+      state.selectedCouplingId = couple.id;
+      state.generationMode = modeSelect.value;
+
+      let tropeVal = selectedTrope;
+      if (selectedTrope === "random") {
+        const tropes = [
+          "Working late at the office together",
+          "Sharing a taxi in the rain after a business dinner",
+          "Only one bed at the hotel",
+          "Preparing for a presentation late at night",
+          "Quiet afternoon in the library archives",
+          "Rainy evening waiting at the library entrance"
+        ];
+        tropeVal = tropes[Math.floor(Math.random() * tropes.length)];
+      }
+
+      const options = {
+        level: levelSelect.value,
+        type: typeSelect.value,
+        trope: tropeVal,
+        customTrope: selectedTrope === "custom" ? customTropeVal : "",
+        mode: modeSelect.value,
+        onStart: () => {
+          genBtn.disabled = true;
+          genBtn.innerText = "✍️ 執筆中...";
+        },
+        onEnd: () => {
+          genBtn.disabled = false;
+          genBtn.innerHTML = "✨ 今日の二人";
+        }
+      };
+
+      await handleGeneration(options);
+    });
+
+    DOM.homeQuickCouplingsContainer.appendChild(card);
+  });
+}
+
+// ── RENDER PRESETS ──
+function renderPresetList() {
+  DOM.presetContainer.innerHTML = "";
+  if (!window.PRESET_STORIES) return;
+
+  window.PRESET_STORIES.forEach((story) => {
+    const card = document.createElement("div");
+    card.className = "preset-card";
+    
+    const label = story.type === "story" ? "Short Story" : "Essay";
+    const badgeClass = story.type === "story" ? "badge-story" : "badge-essay";
+    const levelLabel = story.level === "pre2" ? "準2級" : "2級";
+
+    card.innerHTML = `
+      <div class="preset-info">
+        <h4>${story.title}</h4>
+        <p>${levelLabel} • ${story.situation} • ${story.wordCount}語</p>
+      </div>
+      <span class="preset-badge ${badgeClass}">${label}</span>
+    `;
+
+    card.addEventListener("click", () => {
+      loadPresetStory(story);
+    });
+
+    DOM.presetContainer.appendChild(card);
+  });
+}
+
+// Load Preset Story
+function loadPresetStory(story) {
+  if (story.characterProfiles && story.characterProfiles.length >= 2) {
+    const pA = story.characterProfiles[0];
+    const pB = story.characterProfiles[1];
+    
+    let existingCouple = state.couplings.find(c => 
+      c.partnerA.name.toLowerCase() === pA.name.toLowerCase() && 
+      c.partnerB.name.toLowerCase() === pB.name.toLowerCase()
+    );
+
+    if (!existingCouple) {
+      const newCouple = {
+        id: "couple-preset-" + Date.now(),
+        relationship: story.situation || `${pA.name}と${pB.name}`,
+        partnerA: pA,
+        partnerB: pB,
+        episodes: []
+      };
+      state.couplings.push(newCouple);
+      state.selectedCouplingId = newCouple.id;
+      saveToLocalStorage();
+      renderCouplingList();
+      populateCouplingSelect();
+      updateGeneratorSeriesUI();
+      renderHomeQuickCouplings();
+    } else {
+      state.selectedCouplingId = existingCouple.id;
+      saveToLocalStorage();
+      populateCouplingSelect();
+      updateGeneratorSeriesUI();
+    }
+  }
+
+  loadContent(story, true); 
+  switchView("view-reader");
+  
+  state.stats.totalRead++;
+  saveToLocalStorage();
+  updateStatsUI();
+}
+
+// ── LOAD AND RENDER CONTENT IN READER ──
+function loadContent(content, triggerStreak = false) {
+  state.currentContent = content;
+  stopAudio();
+  
+  DOM.readerTitle.innerText = content.title;
+  DOM.readerMetaLevel.innerText = content.level === "pre2" ? "英検 準2級" : "英検 2級";
+  DOM.readerMetaTrope.innerText = content.situation || "カスタム";
+  DOM.readerMetaWpm.innerText = `${content.wordCount || content.english.split(/\s+/).length} 語`;
+
+  renderEnglishTaps(content.english);
+
+  DOM.readerContentJapanese.innerHTML = `<p>${content.japanese}</p>`;
+  DOM.btnModeEn.classList.add("active");
+  DOM.btnModeParallel.classList.remove("active");
+  DOM.readerContentJapanese.style.display = "none";
+
+  if (content.grammarExplanations && content.grammarExplanations.length > 0) {
+    DOM.readerGrammarSection.style.display = "block";
+    DOM.grammarContainer.innerHTML = content.grammarExplanations.map(item => `
+      <div class="grammar-item">
+        <div class="grammar-sentence">${item.sentence}</div>
+        <div class="grammar-syntax">${item.structure}</div>
+        <div class="grammar-explanation">${item.explanation}</div>
+      </div>
+    `).join('');
+  } else {
+    DOM.readerGrammarSection.style.display = "none";
+  }
+
+  if (content.questions && content.questions.length > 0) {
+    DOM.readerQuizSection.style.display = "block";
+    renderQuizzes(content.questions);
+  } else {
+    DOM.readerQuizSection.style.display = "none";
+  }
+
+  state.studyModeActive = false;
+  DOM.btnStudyMode.classList.remove("active");
+
+  window.scrollTo({ top: 0, behavior: "instant" });
+
+  if (triggerStreak) {
+    handleStreakCalculation();
+  }
+}
+
+// Render taps for each English word
+function renderEnglishTaps(text) {
+  const tokens = text.split(/([a-zA-Z'-]+)/);
+  const html = tokens.map(token => {
+    if (/^[a-zA-Z'-]+$/.test(token)) {
+      const cleanWord = token.toLowerCase();
+      return `<span class="word-tap" data-clean-word="${cleanWord}">${token}</span>`;
+    }
+    return token.replace(/\n/g, "<br>");
+  }).join('');
+
+  DOM.readerContentEnglish.innerHTML = `<p>${html}</p>`;
+
+  const wordSpans = DOM.readerContentEnglish.querySelectorAll(".word-tap");
+  wordSpans.forEach(span => {
+    span.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      wordSpans.forEach(s => s.classList.remove("active"));
+      span.classList.add("active");
+
+      const cleanWord = span.getAttribute("data-clean-word");
+      const originalWord = span.innerText;
+      showWordPopover(cleanWord, originalWord);
+    });
+  });
+}
+
+function toggleStudyModeHighlights() {
+  const spans = DOM.readerContentEnglish.querySelectorAll(".word-tap");
+  const storyWords = state.currentContent ? state.currentContent.words.map(w => w.word.toLowerCase()) : [];
+  
+  const isSimilar = (word, kw) => {
+    if (word === kw) return true;
+    if (word.length < 3 || kw.length < 3) return false;
+    
+    if (word.startsWith(kw)) return true;
+    
+    const minLen = Math.min(word.length, kw.length);
+    if (minLen >= 4) {
+      const prefixLen = Math.max(4, Math.floor(minLen * 0.8));
+      return word.substring(0, prefixLen) === kw.substring(0, prefixLen);
+    }
+    return false;
+  };
+
+  spans.forEach(span => {
+    const word = span.getAttribute("data-clean-word");
+    const isKeyword = storyWords.some(kw => isSimilar(word, kw));
+    if (isKeyword) {
+      if (state.studyModeActive) {
+        span.style.borderBottom = "2px solid var(--gold)";
+        span.style.fontWeight = "bold";
+      } else {
+        span.style.borderBottom = "";
+        span.style.fontWeight = "";
+      }
+    }
+  });
+}
+
+async function showWordPopover(cleanWord, originalWord) {
+  const clickedSpan = DOM.readerContentEnglish.querySelector(".word-tap.active");
+  const paragraphText = clickedSpan ? clickedSpan.parentElement.innerText : "";
+
+  DOM.popLevel.style.display = "none";
+  DOM.popImportance.style.display = "none";
+
+  const localWordDef = state.currentContent?.words.find(w => {
+    const kw = w.word.toLowerCase();
+    return cleanWord === kw || cleanWord.startsWith(kw) || kw.startsWith(cleanWord);
+  });
+
+  if (localWordDef) {
+    DOM.popWord.innerText = localWordDef.word;
+    DOM.popPos.innerText = localWordDef.pos;
+    DOM.popDef.innerText = localWordDef.meaning;
+    DOM.popContext.innerHTML = `&ldquo;${localWordDef.context}&rdquo;`;
+    
+    if (localWordDef.level) {
+      DOM.popLevel.innerText = localWordDef.level;
+      DOM.popLevel.style.display = "inline-block";
+    }
+    if (localWordDef.importance) {
+      DOM.popImportance.innerText = "★".repeat(localWordDef.importance);
+      DOM.popImportance.style.display = "inline-block";
+    }
+    
+    DOM.globalVocabPopup.classList.add("show");
+    return;
+  }
+
+  if (state.apiKey) {
+    DOM.popWord.innerText = originalWord;
+    DOM.popPos.innerText = "翻訳中...";
+    DOM.popDef.innerText = "AIによる文脈翻訳を取得しています...";
+    DOM.popContext.innerText = "";
+    DOM.globalVocabPopup.classList.add("show");
+
+    try {
+      const result = await window.translateWordWithGemini(originalWord, paragraphText, state.apiKey);
+      DOM.popWord.innerText = result.word;
+      DOM.popPos.innerText = result.pos;
+      DOM.popDef.innerText = result.meaning;
+      
+      if (result.level && result.level !== "対象外") {
+        DOM.popLevel.innerText = `英検 ${result.level}`;
+        DOM.popLevel.style.display = "inline-block";
+      }
+      if (result.importance) {
+        DOM.popImportance.innerText = "★".repeat(result.importance);
+        DOM.popImportance.style.display = "inline-block";
+      }
+      DOM.popContext.innerHTML = `&ldquo;${paragraphText}&rdquo;`;
+    } catch (err) {
+      console.error("Gemini dictionary lookup failed, falling back to English API", err);
+      fallbackToFreeDictionary(cleanWord, originalWord);
+    }
+  } else {
+    fallbackToFreeDictionary(cleanWord, originalWord);
+  }
+}
+
+async function fallbackToFreeDictionary(cleanWord, originalWord) {
+  DOM.popWord.innerText = originalWord;
+  DOM.popPos.innerText = "loading...";
+  DOM.popDef.innerText = "辞書を検索中...";
+  DOM.popContext.innerText = "";
+  DOM.globalVocabPopup.classList.add("show");
+
+  try {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
+    if (!res.ok) throw new Error("Not found");
+    const json = await res.json();
+    
+    const entry = json[0];
+    const meaning = entry.meanings[0];
+    const pos = meaning.partOfSpeech;
+    const definition = meaning.definitions[0].definition;
+    const example = meaning.definitions[0].example || "";
+
+    DOM.popPos.innerText = pos;
+    DOM.popDef.innerText = `${definition} (※APIキー設定で日本語訳になります)`;
+    DOM.popContext.innerText = example ? `Example: "${example}"` : "";
+  } catch (err) {
+    DOM.popPos.innerText = "UNKNOWN";
+    DOM.popDef.innerText = "意味が見つかりませんでした。(※APIキーを設定すると日本語訳が表示されます)";
+  }
+}
+
+function closePopover() {
+  DOM.globalVocabPopup.classList.remove("show");
+  DOM.readerContentEnglish.querySelectorAll(".word-tap").forEach(s => s.classList.remove("active"));
+}
+
+function savePopoverWordToVocab() {
+  const word = DOM.popWord.innerText;
+  const pos = DOM.popPos.innerText;
+  const meaning = DOM.popDef.innerText;
+  const context = DOM.popContext.innerText || `From story: "${state.currentContent?.title}"`;
+  
+  const level = DOM.popLevel.style.display !== "none" ? DOM.popLevel.innerText : "";
+  const importance = DOM.popImportance.style.display !== "none" ? DOM.popImportance.innerText.length : 0;
+
+  const exists = state.vocabList.some(v => v.word.toLowerCase() === word.toLowerCase());
+  if (exists) {
+    alert("この単語はすでに復習カードに登録されています！");
+    return;
+  }
+
+  state.vocabList.push({
+    id: "vocab-" + Date.now(),
+    word,
+    pos,
+    meaning,
+    context,
+    level,
+    importance
+  });
+
+  saveToLocalStorage();
+  updateVocabBadge();
+  updateStatsUI();
+
+  DOM.popBtnAddVocab.innerText = "✓ 追加されました";
+  setTimeout(() => {
+    DOM.popBtnAddVocab.innerText = "➕ 復習カードに追加";
+    closePopover();
+  }, 1000);
+}
+
+function updateVocabBadge() {
+  DOM.vocabBadgeCount.innerText = state.vocabList.length;
+}
+
+// ── SPEECH SYNTHESIS (AUDIO) ──
+function startAudio() {
+  if (!state.currentContent) return;
+
+  window.speechSynthesis.cancel();
+
+  state.speechUtterance = new SpeechSynthesisUtterance(state.currentContent.english);
+  state.speechUtterance.rate = state.speechSpeed;
+  
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find(v => v.lang.startsWith("en-")) || voices[0];
+  if (englishVoice) {
+    state.speechUtterance.voice = englishVoice;
+  }
+
+  state.speechUtterance.onend = () => {
+    stopAudio();
+  };
+  state.speechUtterance.onerror = () => {
+    stopAudio();
+  };
+
+  DOM.btnAudioPlay.style.display = "none";
+  DOM.btnAudioStop.style.display = "inline-flex";
+  
+  window.speechSynthesis.speak(state.speechUtterance);
+}
+
+// Stop Audio
+function stopAudio() {
+  window.speechSynthesis.cancel();
+  DOM.btnAudioPlay.style.display = "inline-flex";
+  DOM.btnAudioStop.style.display = "none";
+}
+
+if (typeof window !== "undefined" && window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+// ── QUIZZES RENDER & LOGIC ──
+function renderQuizzes(questions) {
+  DOM.quizContainer.innerHTML = "";
+  questions.forEach((q, qIndex) => {
+    const card = document.createElement("div");
+    card.className = "quiz-card";
+    
+    const choicesHtml = q.choices.map((choice, cIndex) => `
+      <button class="choice-btn" data-qindex="${qIndex}" data-cindex="${cIndex}">
+        ${cIndex + 1}. ${choice}
+      </button>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="quiz-question">${qIndex + 1}. ${q.question}</div>
+      <div class="quiz-choices" id="choices-q-${qIndex}">
+        ${choicesHtml}
+      </div>
+      <div class="quiz-explanation" id="expl-q-${qIndex}" style="display: none;">
+        <strong>解説:</strong> ${q.explanation}
+      </div>
+    `;
+
+    DOM.quizContainer.appendChild(card);
+  });
+
+  const choiceButtons = DOM.quizContainer.querySelectorAll(".choice-btn");
+  choiceButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const qIndex = parseInt(btn.getAttribute("data-qindex"));
+      const cIndex = parseInt(btn.getAttribute("data-cindex"));
+      const correctAnswer = questions[qIndex].answerIndex;
+
+      const groupContainer = document.getElementById(`choices-q-${qIndex}`);
+      const siblingButtons = groupContainer.querySelectorAll(".choice-btn");
+      const explanationBlock = document.getElementById(`expl-q-${qIndex}`);
+
+      siblingButtons.forEach(b => b.disabled = true);
+      state.stats.totalQuizzes++;
+
+      if (cIndex === correctAnswer) {
+        btn.classList.add("correct");
+        state.stats.totalCorrect++;
+      } else {
+        btn.classList.add("wrong");
+        siblingButtons[correctAnswer].classList.add("correct");
+      }
+
+      saveToLocalStorage();
+      updateStatsUI();
+      explanationBlock.style.display = "block";
+    });
+  });
+}
+
+// ── VOCAB CARD DECK RENDER & LOGIC ──
+function renderVocabDeck() {
+  if (state.vocabList.length === 0) {
+    DOM.vocabDeckActive.style.display = "none";
+    DOM.vocabDeckEmpty.style.display = "block";
+    return;
+  }
+
+  DOM.vocabDeckActive.style.display = "block";
+  DOM.vocabDeckEmpty.style.display = "none";
+
+  if (state.vocabQueue.length === 0) {
+    state.vocabQueue = [...state.vocabList];
+    state.currentVocabIndex = 0;
+  }
+
+  if (state.currentVocabIndex >= state.vocabQueue.length) {
+    alert("すべてのカードの復習が完了しました！キューを再読み込みします。");
+    state.vocabQueue = [...state.vocabList];
+    state.currentVocabIndex = 0;
+  }
+
+  const currentCard = state.vocabQueue[state.currentVocabIndex];
+
+  DOM.vocabCardCounter.innerText = `カード ${state.currentVocabIndex + 1} / ${state.vocabQueue.length}`;
+  DOM.vocabCardWord.innerText = currentCard.word;
+  DOM.vocabCardPos.innerText = currentCard.pos;
+  
+  DOM.vocabCardPosBack.innerText = currentCard.pos;
+  DOM.vocabCardDef.innerText = currentCard.meaning;
+  DOM.vocabCardContext.innerHTML = `&ldquo;${currentCard.context}&rdquo;`;
+
+  if (currentCard.level) {
+    DOM.vocabCardLevel.innerText = currentCard.level;
+    DOM.vocabCardLevel.style.display = "inline-block";
+  } else {
+    DOM.vocabCardLevel.style.display = "none";
+  }
+
+  if (currentCard.importance) {
+    DOM.vocabCardImportance.innerText = "★�".repeat(currentCard.importance);
+    DOM.vocabCardImportance.style.display = "inline-block";
+  } else {
+    DOM.vocabCardImportance.style.display = "none";
+  }
+
+  DOM.vocabFlipperContainer.classList.remove("flipped");
+}
+
+function handleVocabResponse(known) {
+  const currentCard = state.vocabQueue[state.currentVocabIndex];
+
+  if (known) {
+    state.vocabList = state.vocabList.filter(item => item.id !== currentCard.id);
+    state.vocabQueue = state.vocabQueue.filter(item => item.id !== currentCard.id);
+    if (state.currentVocabIndex >= state.vocabQueue.length) {
+      state.currentVocabIndex = 0;
+    }
+  } else {
+    state.currentVocabIndex++;
+  }
+
+  saveToLocalStorage();
+  updateVocabBadge();
+  updateStatsUI();
+  renderVocabDeck();
+}
+
+// 笏笏 STREAK CALCULATION LOGIC 笏笏
+function handleStreakCalculation() {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const lastRead = state.stats.lastReadDate;
+  
+  if (lastRead === today) {
+    return;
+  }
+  
+  if (lastRead) {
+    const lastDate = new Date(lastRead);
+    const todayDate = new Date(today);
+    const diffTime = Math.abs(todayDate - lastDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      state.stats.streak++;
+    } else {
+      state.stats.streak = 1;
+    }
+  } else {
+    state.stats.streak = 1;
+  }
+  
+  state.stats.lastReadDate = today;
+  saveToLocalStorage();
+  updateStreakUI();
+}
+
+// 笏笏 STATISTICS UI UPDATE 笏笏
+function updateStatsUI() {
+  DOM.statsTotalRead.innerText = state.stats.totalRead;
+  DOM.statsTotalWords.innerText = state.vocabList.length;
+
+  const rate = state.stats.totalQuizzes > 0 
+    ? Math.round((state.stats.totalCorrect / state.stats.totalQuizzes) * 100)
+    : 0;
+  DOM.statsTotalCorrect.innerText = `${rate}%`;
+}
+
+function updateStreakUI() {
+  const streakText = document.getElementById("home-streak-text");
+  if (streakText) {
+    const currentStreak = state.stats.streak || 0;
+    streakText.innerText = `${currentStreak}日連続学習中！`;
+  }
+}
+
+// 笏€笏€ CHARACTER DIALOGUE RENDERING 笏€笏€
+function renderWelcomeDialog() {
+  const currentCouple = state.couplings.find(c => c.id === state.selectedCouplingId);
+  const charA = currentCouple ? currentCouple.partnerA : null;
+  const charB = currentCouple ? currentCouple.partnerB : null;
+
+  const dialoguesA = [
+    "「お疲れ様。今日は『in spite of 〜（〜にもかかわらず）』という熟語を覚えて帰ってほしい。In spite of the rain, we had a good time.（雨にもかかわらず、僕たちは楽しんだ）のように名詞を後ろに置くんだ。……まあ、君と一緒なら大雨でも最高だけどね」",
+    "「お帰り。英語の『as long as 〜』は『〜する限りは』という条件を表すよ。As long as you are here, I am happy.（君がここにいてくれる限り、私は幸せだ）……フフ、今日の学習もその調子で頑張ろう」",
+    "「来たか。今日は『look forward to 〜ing（〜を楽しみに待つ）』をおさらいしよう。I'm looking forward to reading with you.（君と一緒に読むのを楽しみにしているよ）。toの後ろは動詞の原形じゃなく動名詞（ing）にするのが超重要だ。覚えておいて」",
+    "「今日は『prevent A from 〜ing（Aが〜するのを妨げる/防ぐ）』をおさらいしよう。Nothing can prevent me from loving you.（何ものも私が君を愛するのを妨げられない）。……フフ、本音だよ。後半の動名詞を忘れないでね」",
+    "「今日は『in order to 〜（〜するために）』だ。In order to see your smile, I'll do my best.（君の笑顔を見るために、私は全力を尽くすよ）。目的をはっきりさせたい時によく使う表現だね」",
+    "「英語の『make sure to 〜』は『必ず〜する』という意味だ。Make sure to study every day.（必ず毎日勉強するようにね）。まあ、僕を愛することも忘れないでほしいけど」",
+    "「今日は『had better 〜（〜したほうがいい）』をおさらいしよう。You had better rest tonight.（今夜は休んだほうがいい）。had better は強い忠告になるから、目上の人に使う時は注意が必要だよ」",
+    "「今日は『no matter how 〜（どんなに〜だとしても）』を覚えよう。No matter how hard it is, I won't give up.（どんなに困難でも、私は諦めない）。君と一緒なら、どんな英語も乗り越えられるよ」",
+    (charB ? `「今日は『by the time 〜（〜するまでには）』を使ってみよう。By the time you notice, I will be in love with ${charB.name}.（君が気づく頃には、私は${charB.name}に夢中になっているだろう）……なんてね。さあ、始めようか」` : "「今日は『by the time 〜（〜するまでには）』を使おう。今日も一緒に読もうな」")
+  ];
+
+  const dialoguesB = [
+    "「お帰りなさい！今日は『instead of 〜（〜の代わりに）』を紹介しますね。How about coffee instead of tea?（お茶の代わりにコーヒーはいかがですか？）疲れているなら、僕の淹れたコーヒーで一息ついてから英語を読みましょう」",
+    "「お疲れ様です。英検頻出の『take care of 〜（〜の世話をする/処理する）』ですが、Take care of yourself.（お体に気をつけて）という挨拶でもよく使います。僕は……あなたのことを何から何までお世哀しちゃいたい気分ですけどね」",
+    "「来たね。今日は『not only A but also B（AだけでなくBも）』という重要構文だよ。You are not only smart but also very kind.（あなたは賢いだけでなく、とても優しい）。ふたりで学ぶと、なんだか普段より張り切っちゃうな」",
+    "「お疲れ様です。今日は『be worth 〜ing（〜する価値がある）』ですね。This story is worth reading.（このストーリーは読む価値がある）。あなたの努力は、絶対に将来何倍もの価値になって返ってきますよ」",
+    "「今日は『so that A can B（AがBできるように）』です。I support you so that you can succeed.（あなたが成功できるように、私は応援しています）。目的を表す便利な接続詞ですよ」",
+    "「今日は『would rather A than B（BするよりむしろAしたい）』を紹介します。I would rather study here than go out.（外出するより、むしろここで勉強したいな）。あなたと二人きりで過ごせるなら、どこにも行きたくありません」",
+    "「今日は『on behalf of 〜（〜を代表して / 〜に代わって）』です。On behalf of the staff, thank you.（スタッフを代表してお礼申し上げます）。これもビジネスで頻出の重要表現ですね」",
+    (charA ? `「お帰りなさい！今日は『used to 〜（かつて〜したものだ）』です。I used to study alone, but now I have ${charA.name}.（かつては一人で勉強していたけれど、今は${charA.name}さんがいる）。ふたりで学ぶと楽しいですね！」` : "「お帰りなさい！今日は『used to 〜（かつて〜したものだ）』です。一緒に勉強できて嬉しいです」")
+  ];
+
+  const dialoguesDefault = [
+    "「お帰り。今日は『in spite of 〜（〜にもかかわらず）』を覚えよう。In spite of the busy day, let's read some English!（忙しい一日だったけれど、英語を読もう！）」",
+    "「お疲れ様。今日は『not only A but also B（AだけでなくBも）』だ。Learning English is not only useful but also fun!（英語学習は役に立つだけでなく、楽しいよ！）」",
+    "「お帰りなさい。今日は『prevent A from 〜ing（Aが〜するのを妨げる）』をおさらいします。Nothing can prevent you from learning.（何ものもあなたの学びを妨げられません！）」",
+    "「お疲れ様です。今日は『be worth 〜ing（〜する価値がある）』です。Every small effort is worth trying!（すべての小さな努力は、試す価値があります！）」"
+  ];
+
+  const pickCharA = Math.random() > 0.5;
+  const activeChar = pickCharA ? charA : charB;
+  
+  if (!activeChar) {
+    const textEl = document.getElementById("home-welcome-text");
+    if (textEl) {
+      textEl.innerText = dialoguesDefault[Math.floor(Math.random() * dialoguesDefault.length)];
+    }
+    return;
+  }
+
+  const pool = pickCharA ? dialoguesA : dialoguesB;
+  const message = pool[Math.floor(Math.random() * pool.length)];
+
+  const avatarEl = document.getElementById("home-welcome-avatar");
+  const nameEl = document.getElementById("home-welcome-name");
+  const textEl = document.getElementById("home-welcome-text");
+
+  if (avatarEl && nameEl && textEl) {
+    avatarEl.innerText = activeChar.name.charAt(0).toUpperCase();
+    avatarEl.style.borderColor = pickCharA ? "var(--accent)" : "var(--gold)";
+    avatarEl.style.color = pickCharA ? "var(--accent)" : "var(--gold)";
+    
+    let roleTitle = "さん";
+    if (activeChar.description.includes("部長")) roleTitle = "部長";
+    else if (activeChar.description.includes("係長")) roleTitle = "係長";
+    else if (activeChar.description.includes("司書")) roleTitle = "司書";
+    else if (activeChar.description.includes("部下")) roleTitle = "部下";
+    else if (activeChar.description.includes("学生") || activeChar.description.includes("大学")) roleTitle = "さん";
+
+    nameEl.innerText = `${activeChar.name} ${roleTitle}`;
+    textEl.innerText = message;
+  }
+}
+
+window.addEventListener("DOMContentLoaded", init);

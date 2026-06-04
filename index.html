@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fujolingo — 自分だけの「推し」で学ぶ英語リーディング</title>
+  <link rel="stylesheet" href="style.css?v=2">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-group">
+        <span class="logo-icon">🍏</span>
+        <h1 class="logo-text">Fujolingo</h1>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tab-home" data-view="view-home">🏠 ホーム</button>
+      <button class="nav-tab" id="tab-reader" data-view="view-reader">📖 リーダー</button>
+      <button class="nav-tab" id="tab-generator" data-view="view-generator">📖 本棚</button>
+      <button class="nav-tab" id="tab-char-maker" data-view="view-char-maker">⚙️ 設定</button>
+      <button class="nav-tab" id="tab-vocab" data-view="view-vocab">🃏 復習 (<span id="vocab-badge-count">0</span>)</button>
+    </nav>
+
+    <!-- VIEW 0: HOME / DASHBOARD -->
+    <div id="view-home" class="app-view active">
+      
+      <!-- Welcome card (Character Dialog) -->
+      <div class="panel" style="background: linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-elevated) 100%); position: relative; cursor: pointer; transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;" id="home-welcome-panel" title="クリックすると別のアドバイスを聞けます">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <div id="home-welcome-avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: var(--accent-bg); color: var(--accent); border: 2px solid var(--border); flex-shrink: 0; font-weight: bold;">
+            K
+          </div>
+          <div style="flex: 1;">
+            <div id="home-welcome-name" style="font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+              Kenji 部長
+            </div>
+            <div id="home-welcome-text" style="font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.6; font-style: italic; margin-bottom: 4px;">
+              「お帰り。今日も頑張っているな。あまり根を詰めすぎるなよ。適度な休憩が一番能率を上げるコツだ」
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 4px; opacity: 0.8; user-select: none;">
+              💡 クリックして他の一言を聞く
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Summary -->
+      <div class="panel">
+        <h3 class="section-title">📈 あなたの学習状況</h3>
+        
+        <div style="display: flex; align-items: center; gap: 10px; background: var(--bg-subtle); padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid var(--border);">
+          <span style="font-size: 24px;">🔥</span>
+          <div>
+            <div style="font-size: 14px; font-weight: 800; color: var(--gold);" id="home-streak-text">
+              1日連続学習中！
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              毎日英文を読むことで習慣化し、英語脳を定着させます。
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-summary">
+          <div class="stat-item">
+            <div class="stat-val" id="stats-total-read">0</div>
+            <div class="stat-lbl">読了ストーリー</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="stats-total-words">0</div>
+            <div class="stat-lbl">カード登録語</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="stats-total-correct">0%</div>
+            <div class="stat-lbl">クイズ正解率</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Generate by Coupling (今日の二人) -->
+      <div class="panel">
+        <h3 class="section-title">📚 今日の二人</h3>
+        <div id="home-quick-couplings-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 6px;">
+          <!-- Dynamically filled with coupling cards by app.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 1: READER -->
+    <div id="view-reader" class="app-view">
+      <div class="panel" style="padding-top: 24px;">
+        
+        <!-- Reader Header -->
+        <div class="story-meta-row">
+          <span id="reader-meta-level">英検準2級</span>
+          <span class="dot-separator"></span>
+          <span id="reader-meta-trope">深夜のオフィス</span>
+          <span class="dot-separator"></span>
+          <span id="reader-meta-wpm">約 120 語</span>
+        </div>
+
+        <div class="reader-title-area">
+          <h2 id="reader-title">Late Night Coffee</h2>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="reader-toolbar">
+          <div class="audio-controls">
+            <button id="btn-audio-play" class="pill-btn">🔊 朗読再生</button>
+            <button id="btn-audio-stop" class="pill-btn" style="display: none; border-color: var(--error); color: var(--error);">⏹️ 停止</button>
+            <select id="audio-speed-select" style="width: auto; padding: 2px 8px; font-size: 11px; height: 26px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+              <option value="0.8">0.8x (ゆっくり)</option>
+              <option value="1.0" selected>1.0x (標準)</option>
+              <option value="1.2">1.2x (速め)</option>
+              <option value="1.5">1.5x (試験対策)</option>
+            </select>
+          </div>
+          <div class="display-modes">
+            <button id="btn-mode-en" class="pill-btn active">EN</button>
+            <button id="btn-mode-parallel" class="pill-btn">対訳</button>
+            <button id="btn-study-mode" class="pill-btn">🎯 単語強調</button>
+          </div>
+        </div>
+
+        <!-- English Prose Area -->
+        <div class="article-text-container" id="reader-content-english">
+          <!-- Text will be filled here dynamically with word-tap spans -->
+        </div>
+
+        <!-- Parallel Translation Box (Shown in parallel mode) -->
+        <div class="translation-box" id="reader-content-japanese">
+          <!-- Japanese translation filled here -->
+        </div>
+
+        <!-- Grammar Breakdown Section -->
+        <div class="grammar-drawer" id="reader-grammar-section" style="display: none;">
+          <h4 style="font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            🔍 英検最重要！構文・文法解説
+          </h4>
+          <div id="grammar-explanation-container">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <!-- Eiken Comprehension Quizzes -->
+        <div class="quiz-section" id="reader-quiz-section" style="display: none;">
+          <h4 class="section-title">📝 理解度チェッククイズ (英検風)</h4>
+          <div id="quiz-container">
+            <!-- Quizzes filled dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: BOOKSHELF (連載アーカイブ & 続き生成) -->
+    <div id="view-generator" class="app-view">
+      
+      <!-- Dynamic Bookshelf Container -->
+      <div id="bookshelf-container" style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Filled dynamically by app.js -->
+      </div>
+
+      <!-- Preset Sample Stories -->
+      <div class="panel" style="margin-top: 24px;">
+        <h3 class="section-title">📚 サンプル教材ですぐに学ぶ (APIキー不要)</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+          APIキーをお持ちでない場合、以下のプリセットストーリーを選んでアプリの全機能を試すことができます。
+        </p>
+        <div class="preset-list" id="preset-container">
+          <!-- Preset items will be generated dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 3: SETTINGS & COUPLING MANAGER -->
+    <div id="view-char-maker" class="app-view">
+      
+      <!-- API Key config -->
+      <div class="panel">
+        <h3 class="section-title">🔑 Gemini API 設定</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+          ストーリーの新規生成には Gemini API キーが必要です。入力されたキーはブラウザにのみ安全に保存されます。
+        </p>
+        <div class="form-group">
+          <input type="text" id="api-key" placeholder="AIZAaSy..." value="">
+        </div>
+      </div>
+
+      <!-- Coupling Registry List -->
+      <div class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 class="section-title" style="margin-bottom: 0;">🎭 カップリング管理</h3>
+          <button id="btn-add-coupling" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; min-height: 32px;">➕ 新規追加</button>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          お好みの攻め・受けのペアを複数登録できます。生成タブから切り替えて、それぞれのカップリングごとのお話（単発/連載）を楽しむことができます。
+        </p>
+        
+        <div id="coupling-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Active couplings list will render here dynamically -->
+        </div>
+      </div>
+
+      <!-- Coupling Editor Panel (Hidden by default, shown when editing/adding) -->
+      <div class="panel" id="coupling-edit-panel" style="display: none; border: 2px solid var(--accent); animation: slideDown 0.3s ease;">
+        <h3 class="section-title" id="coupling-editor-title">👥 カップリングを編集</h3>
+        
+        <input type="hidden" id="edit-couple-id" value="">
+
+        <!-- 属性タグ選択エリア -->
+        <div class="form-group" style="margin-bottom: 18px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;">
+          <label style="font-weight: 700; margin-bottom: 8px; display: block;">お好みの属性タグ（複数選択可）</label>
+          
+          <!-- カテゴリ1: 世界観・シチュエーション -->
+          <div class="tag-category-title">🌐 世界観・シチュエーション</div>
+          <div class="coupling-tags-grid">
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-school"> 学園もの</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-uniform"> 制服</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-suit"> スーツ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-office"> オフィスもの</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-military"> 軍人</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-historical"> 時代物</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-master-servant"> 主従関係</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-butler"> 執事</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-owner"> オーナー</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-gijinka"> 擬人化</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-nonhuman"> 人外</label>
+          </div>
+
+          <!-- カテゴリ2: キャラクター特徴・属性 -->
+          <div class="tag-category-title" style="margin-top: 12px;">🎭 特徴・属性</div>
+          <div class="coupling-tags-grid">
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-glasses"> メガネ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-crossdress"> 女装</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-age-gap"> 年の差</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-younger-seme"> 年下攻</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-older-uke"> オジサン受</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-shota"> ショタ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-gekokujo"> 下克上</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-reversable"> リバ</label>
+          </div>
+
+          <!-- カテゴリ3: 性格・関係性 -->
+          <div class="tag-category-title" style="margin-top: 12px;">👥 性格・関係性</div>
+          <div class="coupling-tags-grid">
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-friend"> 親友</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-rival"> ライバル</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-childhood"> 幼馴染み</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-tsundere"> ツンデレ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-oresama"> オレ様</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-supadari"> スパダリ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-dog"> ワンコ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-wet-noodle"> ヘタレ攻</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-possessive"> 独占欲</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-yandere"> ヤンデレ</label>
+          </div>
+
+          <!-- カテゴリ4: ストーリーのトーン -->
+          <div class="tag-category-title" style="margin-top: 12px;">✨ 雰囲気</div>
+          <div class="coupling-tags-grid">
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-sweet"> 甘々</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-romcom"> ラブコメ</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-cozy"> ほのぼの</label>
+            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-gag"> ギャグ</label>
+          </div>
+
+          <div style="margin-top: 14px; text-align: right;">
+            <button type="button" id="btn-generate-by-tags" class="btn-secondary" style="font-size: 12px; padding: 6px 12px; min-height: 32px;">🎲 選択した属性で作成する</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>カップリングの概要・関係性</label>
+          <input type="text" id="edit-couple-rel" placeholder="例：営業部長と優秀な部下、秘密の恋人同士" value="">
+        </div>
+
+        <div class="form-group">
+          <label>関係の進展度・親密度</label>
+          <select id="edit-couple-intimacy" style="width: 100%; padding: 8px 12px; font-size: 13.5px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); outline: none;">
+            <option value="strangers">出会ったばかり / ライバル・反発し合う関係</option>
+            <option value="crush">片想い / 意識し合っているがまだ進展していない</option>
+            <option value="slowburn" selected>両片想い / じれったい距離感、お互い踏み出せない</option>
+            <option value="secret_lovers">秘密の恋人 / すでに付き合っており、隠れていちゃつく関係</option>
+            <option value="established">安定した恋人 / 肉体関係もあり、お互いを深く愛し合っている</option>
+          </select>
+        </div>
+
+        <div class="char-grid">
+          <!-- Seme Creator -->
+          <div class="char-card-edit" style="border-left: 4px solid var(--accent); background: var(--bg-elevated); padding: 14px;">
+            <div class="char-title">👤 キャラクターA (攻め/リード)</div>
+            <div class="form-group">
+              <label>名前 (英語)</label>
+              <input type="text" id="edit-char-a-name" placeholder="Kenji">
+            </div>
+            <div class="form-group">
+              <label>属性・性格・年齢</label>
+              <textarea id="edit-char-a-desc" rows="3" placeholder="48歳の営業部長。仕事には厳しいが、部下思いでダンディーな落ち着いたおじさん。"></textarea>
+            </div>
+            <div class="form-group">
+              <label>日本語訳での口調・口癖</label>
+              <input type="text" id="edit-char-a-speech" placeholder="冷静沈着で包容力のある敬語">
+            </div>
+          </div>
+          
+          <!-- Uke Creator -->
+          <div class="char-card-edit" style="border-left: 4px solid var(--gold); background: var(--bg-elevated); padding: 14px;">
+            <div class="char-title">👤 キャラクターB (受け/フォロー)</div>
+            <div class="form-group">
+              <label>名前 (英語)</label>
+              <input type="text" id="edit-char-b-name" placeholder="Akira">
+            </div>
+            <div class="form-group">
+              <label>属性・性格・年齢</label>
+              <textarea id="edit-char-b-desc" rows="3" placeholder="34歳の営業係長。優秀で真面目だが、上司を慕ってサポートする部下。"></textarea>
+            </div>
+            <div class="form-group">
+              <label>日本語訳での口調・口癖</label>
+              <input type="text" id="edit-char-b-speech" placeholder="真面目かつ親しみのある部下口調。相手を「部長」と呼ぶ。">
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 16px;">
+          <button id="btn-save-coupling" class="btn-primary" style="flex: 2; padding: 10px 16px; font-size: 13.5px; min-height: 40px;">💾 保存する</button>
+          <button id="btn-cancel-coupling" class="btn-secondary" style="flex: 1; padding: 10px 16px; font-size: 13.5px; min-height: 40px; justify-content: center;">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- Danger Zone / Data Reset -->
+      <div class="panel" style="border: 1px solid rgba(220, 38, 38, 0.2); background: rgba(220, 38, 38, 0.02); margin-top: 24px;">
+        <h4 class="section-title" style="color: var(--error);">⚠️ 危険ゾーン</h4>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          初期化したいデータを選択してください。この操作は取り消せません。
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Reset Learning Stats -->
+          <div style="border-bottom: 1px dashed rgba(220, 38, 38, 0.15); padding-bottom: 14px;">
+            <h5 style="font-size: 13px; color: var(--text-primary); margin: 0 0 6px 0; font-weight: 700;">📈 学習状況のみをリセット</h5>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.45;">
+              これまでのストーリー読了数、クイズの正解率、および連続学習日数（ストリーク）の記録をゼロに戻します。（登録したカップリングや連載履歴はそのまま残ります）
+            </p>
+            <button id="btn-reset-only-stats" class="pill-btn" style="border-color: var(--error-bg); color: var(--error); font-size: 11px; padding: 6px 14px;">
+              📊 学習状況を初期化
+            </button>
+          </div>
+          
+          <!-- Reset Couplings & Stories -->
+          <div>
+            <h5 style="font-size: 13px; color: var(--text-primary); margin: 0 0 6px 0; font-weight: 700;">👥 カップリング設定と連載履歴をリセット</h5>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.45;">
+              ローカルに保存されているすべてのカップリング、連載エピソード履歴、あらすじを消去し、デフォルトの「年下（攻）×年上（受）」設定に戻します。（あなたの学習記録はそのまま残ります）
+            </p>
+            <button id="btn-reset-only-couplings" class="pill-btn" style="border-color: var(--error-bg); color: var(--error); font-size: 11px; padding: 6px 14px;">
+              🚨 カップリング・履歴を初期化
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+<!-- VIEW 4: VOCABULARY FLASHCARDS -->
+    <div id="view-vocab" class="app-view">
+      <div class="panel">
+        <h3 class="section-title">🃏 復習フラッシュカード</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+          リーダーで調べた単語がここに保存され、文章の中の文脈（コンテクスト）と一緒に効率よく記憶できます。
+        </p>
+
+        <div id="vocab-deck-active" style="display: none;">
+          <!-- Card Count -->
+          <div class="card-counter" id="vocab-card-counter">
+            Card 1 / 5
+          </div>
+
+          <!-- Flippable Card -->
+          <div class="card-container-flipper" id="vocab-flipper-container">
+            <div class="card-flipper" id="vocab-flipper">
+              <!-- Front -->
+              <div class="card-front">
+                <span class="card-pos" id="vocab-card-pos">VERB</span>
+                <h2 class="card-word" id="vocab-card-word">hesitated</h2>
+                <p class="card-hint">タップで裏返す</p>
+              </div>
+              <!-- Back -->
+              <div class="card-back">
+                <div style="margin-bottom: 12px; display: flex; gap: 6px; align-items: center; justify-content: center;">
+                  <span class="card-pos" id="vocab-card-pos-back">VERB</span>
+                  <span class="preset-badge badge-story" id="vocab-card-level" style="font-size: 9px; padding: 2px 6px;">準2級</span>
+                  <span id="vocab-card-importance" style="font-size: 11px; color: var(--gold);">⭐⭐⭐⭐</span>
+                </div>
+                <div class="card-definition" id="vocab-card-def">ためらった、躊躇した</div>
+                <div class="card-context" id="vocab-card-context">
+                  &ldquo;Kenji noticed Akira and hesitated for a moment.&rdquo;
+                </div>
+                <p class="card-hint" style="margin-top: 16px;">タップで表に戻す</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="vocab-actions">
+            <button id="btn-vocab-forgot" class="btn-card-action btn-dontknow">❌ 覚えていない</button>
+            <button id="btn-vocab-know" class="btn-card-action btn-know">✅ 覚えた！</button>
+          </div>
+        </div>
+
+        <div id="vocab-deck-empty" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
+          <span style="font-size: 40px; display: block; margin-bottom: 12px;">🌟</span>
+          <p style="font-size: 15px; font-weight: bold; color: var(--accent); margin-bottom: 6px;">復習カードが空っぽです</p>
+          <p style="font-size: 12px;">リーダー画面で英文の単語をタップして、気になる単語をカードに追加してみましょう！</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Inline Word Popover (Hidden by default, fixed position) -->
+    <div class="vocab-popup" id="global-vocab-popup">
+      <div class="vocab-pop-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="vocab-pop-word" id="pop-word">word</span>
+          <span class="vocab-pop-pos" id="pop-pos">pos</span>
+          <span class="preset-badge badge-story" id="pop-level" style="display: none; font-size: 9px; padding: 2px 6px; text-transform: none;">準2級</span>
+          <span id="pop-importance" style="display: none; font-size: 11px; color: var(--gold);">⭐⭐⭐</span>
+        </div>
+        <button class="vocab-close-btn" id="pop-close">×</button>
+      </div>
+      <div class="vocab-pop-def" id="pop-def">日本語の意味</div>
+      <div class="vocab-pop-context" id="pop-context">&ldquo;This is the context sentence.&rdquo;</div>
+      <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+        <button id="pop-btn-add-vocab" class="btn-secondary" style="font-size: 11px; padding: 4px 10px; min-height: 26px;">🃏 復習カードに追加</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="mockData.js?v=2"></script>
+  <script src="gemini.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>
