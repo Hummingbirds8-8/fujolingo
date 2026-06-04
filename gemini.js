@@ -81,7 +81,8 @@ ${continuityPrompt}
    - Specify the index of the correct answer (0-indexed).
    - Provide a Japanese explanation for why the correct answer is correct and why other choices are wrong.
 7. Summary:
-   - Provide a brief, one-sentence Japanese summary (about 20-30 characters) of what happened in this specific episode, to be used as history context for the next episode. (e.g., '残業中のオフィスで、AkiraがKenjiに差し入れを渡し、二人の会話が弾んだ。'). Put this in the 'summary' field.`;
+   - Provide a brief, one-sentence Japanese summary (about 20-30 characters) of what happened in this specific episode, to be used as history context for the next episode. (e.g., '残業中のオフィスで、AkiraがKenjiに差し入れを渡し、二人の会話が弾んだ。'). Put this in the 'summary' field.
+8. No Japanese in English: Under no circumstances should Japanese characters (Kanji, Hiragana, Katakana) like '部長', '係長', or '先輩' appear inside the English story text or English dialogues. Any Japanese titles or honorifics mentioned in the characters' speechStyle must be translated into natural English equivalents (e.g. 'Director', 'Manager', 'Boss', 'Senior', or simply the character's name) in the English story.`;
   } else {
     // Essay Mode
     prompt = `You are a professional ESL teacher and literary analyst.
@@ -110,7 +111,8 @@ Write a short cultural or linguistic analysis essay in English designed as a rea
    - Specify the index of the correct answer (0-indexed).
    - Provide a Japanese explanation for the answer.
 7. Summary:
-   - Provide a brief, one-sentence Japanese summary of the essay. Put this in the 'summary' field.`;
+   - Provide a brief, one-sentence Japanese summary of the essay. Put this in the 'summary' field.
+8. No Japanese in English: Ensure the English text is 100% written in English, containing absolutely no Japanese characters (Kanji, Hiragana, Katakana).`;
   }
 
   // Define response JSON schema to enforce strict format
