@@ -790,6 +790,7 @@ function handleSaveCoupling() {
   renderCouplingList();
   populateCouplingSelect();
   updateGeneratorSeriesUI();
+  renderWelcomeDialog();
   closeCouplingEditor();
   alert("カップリング設定を保存しました。");
 }
@@ -802,12 +803,22 @@ function renderCouplingList() {
     const card = document.createElement("div");
     card.className = "preset-card";
     card.style.display = "block";
-    card.style.cursor = "default";
+    card.style.cursor = "pointer";
+    
+    const isActive = couple.id === state.selectedCouplingId;
+    if (isActive) {
+      card.style.border = "2px solid var(--accent)";
+      card.style.boxShadow = "0 0 8px rgba(13, 148, 136, 0.1)";
+      card.style.background = "linear-gradient(135deg, rgba(13, 148, 136, 0.03) 0%, var(--bg-elevated) 100%)";
+    } else {
+      card.style.border = "1px solid var(--border)";
+      card.style.background = "var(--bg-elevated)";
+    }
     
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
         <h4 style="font-size: 15px; color: var(--accent-light);">
-          ${couple.partnerA.name}×${couple.partnerB.name}
+          ${couple.partnerA.name}×${couple.partnerB.name} ${isActive ? '<span style="font-size: 10px; color: var(--accent); margin-left: 6px; font-weight: bold; background: rgba(13, 148, 136, 0.1); padding: 2px 6px; border-radius: 4px;">選択中</span>' : ''}
         </h4>
         <div>
           <button class="pill-btn btn-edit-couple" data-id="${couple.id}" style="padding: 2px 8px; font-size: 10px;">編集</button>
@@ -836,12 +847,14 @@ function renderCouplingList() {
     `;
     
     const editBtn = card.querySelector(".btn-edit-couple");
-    editBtn.addEventListener("click", () => {
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       openCouplingEditor(couple.id);
     });
     
     const deleteBtn = card.querySelector(".btn-delete-couple");
-    deleteBtn.addEventListener("click", () => {
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (confirm("このカップリング設定を削除しますか？")) {
         state.couplings = state.couplings.filter(c => c.id !== couple.id);
         if (state.selectedCouplingId === couple.id) {
@@ -852,6 +865,19 @@ function renderCouplingList() {
         populateCouplingSelect();
         updateGeneratorSeriesUI();
         renderHomeQuickCouplings();
+        renderWelcomeDialog();
+      }
+    });
+
+    card.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") return;
+      if (state.selectedCouplingId !== couple.id) {
+        state.selectedCouplingId = couple.id;
+        saveToLocalStorage();
+        renderCouplingList();
+        renderHomeQuickCouplings();
+        renderWelcomeDialog();
+        renderBookshelf();
       }
     });
     
@@ -1096,7 +1122,18 @@ function renderHomeQuickCouplings() {
     card.style.flexDirection = "column";
     card.style.alignItems = "stretch";
     card.style.gap = "12px";
-    card.style.cursor = "default";
+    card.style.cursor = "pointer";
+    card.style.transition = "transform 0.1s ease, border-color 0.2s ease";
+
+    const isActive = couple.id === state.selectedCouplingId;
+    if (isActive) {
+      card.style.border = "2px solid var(--accent)";
+      card.style.boxShadow = "0 0 12px rgba(13, 148, 136, 0.15)";
+      card.style.background = "linear-gradient(135deg, rgba(13, 148, 136, 0.04) 0%, var(--bg-elevated) 100%)";
+    } else {
+      card.style.border = "1px solid var(--border)";
+      card.style.background = "var(--bg-elevated)";
+    }
 
     const epCount = couple.episodes ? couple.episodes.length : 0;
     const badgeText = epCount > 0 ? `連載中: 第${epCount}話まで` : "新規ストーリー";
@@ -1106,7 +1143,7 @@ function renderHomeQuickCouplings() {
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
         <h4 style="font-size: 16px; color: var(--accent); font-weight: 800; margin: 0;">
-          ${couple.partnerA.name}×${couple.partnerB.name}
+          ${couple.partnerA.name}×${couple.partnerB.name} ${isActive ? '<span style="font-size: 10px; color: var(--accent); margin-left: 6px; font-weight: bold; background: rgba(13, 148, 136, 0.1); padding: 2px 6px; border-radius: 4px;">選択中</span>' : ''}
         </h4>
         <span class="preset-badge badge-story" style="font-size: 9px; padding: 2px 6px;">${badgeText}</span>
       </div>
@@ -1168,7 +1205,8 @@ function renderHomeQuickCouplings() {
     const detailsEl = card.querySelector(".home-detail-settings");
 
     tropeButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         tropeButtons.forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         selectedTrope = btn.getAttribute("data-trope");
@@ -1184,7 +1222,8 @@ function renderHomeQuickCouplings() {
     });
 
     const genBtn = card.querySelector(".btn-quick-gen");
-    genBtn.addEventListener("click", async () => {
+    genBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
       const levelSelect = card.querySelector(".quick-level-select");
       const modeSelect = card.querySelector(".quick-mode-select");
       const typeSelect = card.querySelector(".quick-type-select");
@@ -1229,6 +1268,23 @@ function renderHomeQuickCouplings() {
       };
 
       await handleGeneration(options);
+    });
+
+    // Stop propagation of clicks inside controls
+    const stopProps = card.querySelectorAll("select, textarea, details");
+    stopProps.forEach(el => {
+      el.addEventListener("click", (e) => e.stopPropagation());
+    });
+
+    card.addEventListener("click", (e) => {
+      // If active already, do nothing
+      if (state.selectedCouplingId === couple.id) return;
+      
+      state.selectedCouplingId = couple.id;
+      saveToLocalStorage();
+      renderHomeQuickCouplings();
+      renderWelcomeDialog();
+      renderBookshelf();
     });
 
     DOM.homeQuickCouplingsContainer.appendChild(card);
