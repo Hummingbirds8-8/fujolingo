@@ -190,7 +190,7 @@
       <div class="panel">
         <h3 class="section-title">🔑 Gemini API 設定</h3>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
-          ストーリーの新規生成には Gemini API キーが必要です。入力されたキーはブラウザにのみ安全に保存されます。
+          ストーリーの新規生成には Gemini API キーが必要です。Vercelでホストし、環境変数 <code>GEMINI_API_KEY</code> を設定している場合は、空欄のままで動作します。キーを入力した場合は優先的に使用されます。
         </p>
         <div class="form-group">
           <input type="text" id="api-key" placeholder="AIZAaSy..." value="">

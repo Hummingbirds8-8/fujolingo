@@ -171,8 +171,18 @@ function init() {
   }
 }
 
-// 笏笏 LOCAL STORAGE & INITIAL SETUPS 笏笏
+// 笏€笏€ LOCAL STORAGE & INITIAL SETUPS 笏€笏€
 function loadFromLocalStorage() {
+  // Check URL query parameters for API key sharing (?key=AIZa...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedKey = urlParams.get("apikey") || urlParams.get("key");
+  if (sharedKey && sharedKey.toLowerCase().startsWith("aiza")) {
+    localStorage.setItem("favo_api_key", sharedKey);
+    // Remove the key from the URL query to keep it clean and hidden
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
   // API Key
   state.apiKey = localStorage.getItem("favo_api_key") || "";
   if (DOM.apiKeyInput) {
@@ -982,10 +992,7 @@ function renderBookshelf() {
 
 // ── DYNAMIC GENERATION HANDLER ──
 async function handleGeneration(customOptions = {}) {
-  if (!state.apiKey) {
-    alert("Gemini API キーを設定してください。(「設定」タブで登録できます。)");
-    return;
-  }
+  // state.apiKey is optional because it fallbacks to Vercel serverless function proxy (/api/gemini)
 
   const currentCouple = state.couplings.find(c => c.id === state.selectedCouplingId);
   if (!currentCouple) {
@@ -1051,7 +1058,7 @@ async function handleGeneration(customOptions = {}) {
     saveToLocalStorage();
     updateStatsUI();
   } catch (error) {
-    alert("生成中にエラーが発生しました。APIキーを確認するか、時間をおいて再試行してください。\n詳細: " + error.message);
+    alert("生成中にエラーが発生しました。\n・「設定」タブでAPIキーが入力されている場合、キーが正しいか確認してください。\n・サーバー（Vercel）で稼働させる場合は、環境変数「GEMINI_API_KEY」が正しく設定されているか確認してください。\n\n詳細: " + error.message);
   } finally {
     // Call onEnd callback if provided
     if (customOptions.onEnd) {
@@ -1426,33 +1433,30 @@ async function showWordPopover(cleanWord, originalWord) {
     return;
   }
 
-  if (state.apiKey) {
-    DOM.popWord.innerText = originalWord;
-    DOM.popPos.innerText = "翻訳中...";
-    DOM.popDef.innerText = "AIによる文脈翻訳を取得しています...";
-    DOM.popContext.innerText = "";
-    DOM.globalVocabPopup.classList.add("show");
+  // Always try Gemini dictionary (will fallback to proxy /api/gemini if state.apiKey is empty)
+  DOM.popWord.innerText = originalWord;
+  DOM.popPos.innerText = "翻訳中...";
+  DOM.popDef.innerText = "AIによる文脈翻訳を取得しています...";
+  DOM.popContext.innerText = "";
+  DOM.globalVocabPopup.classList.add("show");
 
-    try {
-      const result = await window.translateWordWithGemini(originalWord, paragraphText, state.apiKey);
-      DOM.popWord.innerText = result.word;
-      DOM.popPos.innerText = result.pos;
-      DOM.popDef.innerText = result.meaning;
-      
-      if (result.level && result.level !== "対象外") {
-        DOM.popLevel.innerText = `英検 ${result.level}`;
-        DOM.popLevel.style.display = "inline-block";
-      }
-      if (result.importance) {
-        DOM.popImportance.innerText = "★".repeat(result.importance);
-        DOM.popImportance.style.display = "inline-block";
-      }
-      DOM.popContext.innerHTML = `&ldquo;${paragraphText}&rdquo;`;
-    } catch (err) {
-      console.error("Gemini dictionary lookup failed, falling back to English API", err);
-      fallbackToFreeDictionary(cleanWord, originalWord);
+  try {
+    const result = await window.translateWordWithGemini(originalWord, paragraphText, state.apiKey);
+    DOM.popWord.innerText = result.word;
+    DOM.popPos.innerText = result.pos;
+    DOM.popDef.innerText = result.meaning;
+    
+    if (result.level && result.level !== "対象外") {
+      DOM.popLevel.innerText = `英検 ${result.level}`;
+      DOM.popLevel.style.display = "inline-block";
     }
-  } else {
+    if (result.importance) {
+      DOM.popImportance.innerText = "★".repeat(result.importance);
+      DOM.popImportance.style.display = "inline-block";
+    }
+    DOM.popContext.innerHTML = `&ldquo;${paragraphText}&rdquo;`;
+  } catch (err) {
+    console.error("Gemini dictionary lookup failed, falling back to English API", err);
     fallbackToFreeDictionary(cleanWord, originalWord);
   }
 }

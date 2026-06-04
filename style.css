@@ -114,6 +114,7 @@ h1.logo-text {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .nav-tab:hover {
@@ -880,6 +881,17 @@ input[type="text"]:focus, textarea:focus, select:focus {
 @media (max-width: 480px) {
   .char-grid {
     grid-template-columns: 1fr;
+  }
+  .nav-tabs {
+    padding: 2px;
+    gap: 1px;
+    border-radius: var(--radius-sm);
+  }
+  .nav-tab {
+    padding: 8px 3px;
+    font-size: 10.5px;
+    gap: 3px;
+    border-radius: var(--radius-sm);
   }
 }
 

@@ -192,13 +192,28 @@ Write a short cultural or linguistic analysis essay in English designed as a rea
   };
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(requestBody)
-    });
+    let response;
+    if (apiKey) {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+    } else {
+      response = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: requestBody.contents,
+          generationConfig: requestBody.generationConfig,
+          model: modelName
+        })
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -206,7 +221,7 @@ Write a short cultural or linguistic analysis essay in English designed as a rea
     }
 
     const data = await response.json();
-    const rawJsonText = data.candidates[0].content.parts[0].text;
+    const rawJsonText = apiKey ? data.candidates[0].content.parts[0].text : data.text;
     
     const parsedData = JSON.parse(rawJsonText);
     return parsedData;
@@ -263,13 +278,28 @@ Return a JSON object conforming exactly to this schema:
   };
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(requestBody)
-    });
+    let response;
+    if (apiKey) {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+    } else {
+      response = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: requestBody.contents,
+          generationConfig: requestBody.generationConfig,
+          model: modelName
+        })
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -277,7 +307,7 @@ Return a JSON object conforming exactly to this schema:
     }
 
     const data = await response.json();
-    const rawJsonText = data.candidates[0].content.parts[0].text;
+    const rawJsonText = apiKey ? data.candidates[0].content.parts[0].text : data.text;
     return JSON.parse(rawJsonText);
   } catch (error) {
     console.error("Gemini Word Translation Error:", error);
