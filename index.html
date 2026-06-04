@@ -27,7 +27,7 @@
       <button class="nav-tab" id="tab-reader" data-view="view-reader">📖 リーダー</button>
       <button class="nav-tab" id="tab-generator" data-view="view-generator">📖 本棚</button>
       <button class="nav-tab" id="tab-char-maker" data-view="view-char-maker">⚙️ 設定</button>
-      <button class="nav-tab" id="tab-vocab" data-view="view-vocab">🃏 復習 (<span id="vocab-badge-count">0</span>)</button>
+      <button class="nav-tab" id="tab-vocab" data-view="view-vocab">🃏 復習(<span id="vocab-badge-count">0</span>)</button>
     </nav>
 
     <!-- VIEW 0: HOME / DASHBOARD -->
@@ -223,7 +223,7 @@
           <label style="font-weight: 700; margin-bottom: 8px; display: block;">お好みの属性タグ（複数選択可）</label>
           
           <!-- カテゴリ1: 世界観・シチュエーション -->
-          <div class="tag-category-title">🌐 世界観・シチュエーション</div>
+          <div class="tag-category-title">🌐 世界観・シチュエーション (共通)</div>
           <div class="coupling-tags-grid">
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-school"> 学園もの</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-uniform"> 制服</label>
@@ -238,41 +238,79 @@
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="sit-nonhuman"> 人外</label>
           </div>
 
-          <!-- カテゴリ2: キャラクター特徴・属性 -->
-          <div class="tag-category-title" style="margin-top: 12px;">🎭 特徴・属性</div>
+          <!-- カテゴリ2: 二人の関係・特徴 (共通) -->
+          <div class="tag-category-title" style="margin-top: 12px;">🔗 二人の関係・特徴 (共通)</div>
           <div class="coupling-tags-grid">
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-glasses"> メガネ</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-crossdress"> 女装</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-age-gap"> 年の差</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-younger-seme"> 年下攻</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-older-uke"> オジサン受</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-shota"> ショタ</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-gekokujo"> 下克上</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="feat-reversable"> リバ</label>
           </div>
 
-          <!-- カテゴリ3: 性格・関係性 -->
-          <div class="tag-category-title" style="margin-top: 12px;">👥 性格・関係性</div>
-          <div class="coupling-tags-grid">
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-friend"> 親友</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-rival"> ライバル</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-childhood"> 幼馴染み</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-tsundere"> ツンデレ</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-oresama"> オレ様</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-supadari"> スパダリ</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-dog"> ワンコ</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-wet-noodle"> ヘタレ攻</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-possessive"> 独占欲</label>
-            <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="rel-yandere"> ヤンデレ</label>
-          </div>
-
-          <!-- カテゴリ4: ストーリーのトーン -->
-          <div class="tag-category-title" style="margin-top: 12px;">✨ 雰囲気</div>
+          <!-- カテゴリ3: 雰囲気 (共通) -->
+          <div class="tag-category-title" style="margin-top: 12px;">✨ 雰囲気 (共通)</div>
           <div class="coupling-tags-grid">
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-sweet"> 甘々</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-romcom"> ラブコメ</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-cozy"> ほのぼの</label>
             <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="tone-gag"> ギャグ</label>
+          </div>
+
+          <!-- Seme/Uke Settings Container (Auto-stacks on mobile) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px;">
+            <!-- Seme settings column -->
+            <div style="background: rgba(13, 148, 136, 0.02); border: 1px solid rgba(13, 148, 136, 0.1); border-radius: var(--radius-sm); padding: 12px;">
+              <div class="tag-category-title" style="margin-top: 0; color: var(--accent); border-bottom: 1px solid rgba(13, 148, 136, 0.15); padding-bottom: 6px; margin-bottom: 8px;">👤 攻め (A) の特徴・性格</div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">特徴・属性</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-feat-glasses"> メガネ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-feat-crossdress"> 女装</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-feat-younger-seme"> 年下攻</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-feat-shota"> ショタ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-feat-gekokujo"> 下克上</label>
+                </div>
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-top: 4px; margin-bottom: 2px;">性格・関係性</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-friend"> 親友</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-rival"> ライバル</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-childhood"> 幼馴染み</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-tsundere"> ツンデレ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-oresama"> オレ様</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-supadari"> スパダリ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-dog"> ワンコ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-wet-noodle"> ヘタレ攻</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-possessive"> 独占欲</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="seme-rel-yandere"> ヤンデレ</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Uke settings column -->
+            <div style="background: rgba(194, 120, 3, 0.02); border: 1px solid rgba(194, 120, 3, 0.1); border-radius: var(--radius-sm); padding: 12px;">
+              <div class="tag-category-title" style="margin-top: 0; color: var(--gold); border-bottom: 1px solid rgba(194, 120, 3, 0.15); padding-bottom: 6px; margin-bottom: 8px;">👤 受け (B) の特徴・性格</div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">特徴・属性</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-feat-glasses"> メガネ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-feat-crossdress"> 女装</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-feat-older-uke"> オジサン受</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-feat-shota"> ショタ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-feat-gekokujo"> 下克上</label>
+                </div>
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-top: 4px; margin-bottom: 2px;">性格・関係性</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-friend"> 親友</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-rival"> ライバル</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-childhood"> 幼馴染み</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-tsundere"> ツンデレ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-oresama"> オレ様</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-supadari"> スパダリ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-dog"> ワンコ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-wet-noodle"> ヘタレ</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-possessive"> 独占欲</label>
+                  <label class="tag-checkbox-label"><input type="checkbox" class="coupling-tag" value="uke-rel-yandere"> ヤンデレ</label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 14px; text-align: right;">
@@ -299,35 +337,35 @@
         <div class="char-grid">
           <!-- Seme Creator -->
           <div class="char-card-edit" style="border-left: 4px solid var(--accent); background: var(--bg-elevated); padding: 14px;">
-            <div class="char-title">👤 キャラクターA (攻め/リード)</div>
+            <div class="char-title">👤 キャラクターA (攻)</div>
             <div class="form-group">
               <label>名前 (英語)</label>
-              <input type="text" id="edit-char-a-name" placeholder="Kenji">
+              <input type="text" id="edit-char-a-name" placeholder="Akira">
             </div>
             <div class="form-group">
               <label>属性・性格・年齢</label>
-              <textarea id="edit-char-a-desc" rows="3" placeholder="48歳の営業部長。仕事には厳しいが、部下思いでダンディーな落ち着いたおじさん。"></textarea>
+              <textarea id="edit-char-a-desc" rows="3" placeholder="34歳の営業係長。優秀で仕事ができるが、上司のKenjiに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。"></textarea>
             </div>
             <div class="form-group">
               <label>日本語訳での口調・口癖</label>
-              <input type="text" id="edit-char-a-speech" placeholder="冷静沈着で包容力のある敬語">
+              <input type="text" id="edit-char-a-speech" placeholder="基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。">
             </div>
           </div>
           
           <!-- Uke Creator -->
           <div class="char-card-edit" style="border-left: 4px solid var(--gold); background: var(--bg-elevated); padding: 14px;">
-            <div class="char-title">👤 キャラクターB (受け/フォロー)</div>
+            <div class="char-title">👤 キャラクターB (受)</div>
             <div class="form-group">
               <label>名前 (英語)</label>
-              <input type="text" id="edit-char-b-name" placeholder="Akira">
+              <input type="text" id="edit-char-b-name" placeholder="Kenji">
             </div>
             <div class="form-group">
               <label>属性・性格・年齢</label>
-              <textarea id="edit-char-b-desc" rows="3" placeholder="34歳の営業係長。優秀で真面目だが、上司を慕ってサポートする部下。"></textarea>
+              <textarea id="edit-char-b-desc" rows="3" placeholder="48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Akiraの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。"></textarea>
             </div>
             <div class="form-group">
               <label>日本語訳での口調・口癖</label>
-              <input type="text" id="edit-char-b-speech" placeholder="真面目かつ親しみのある部下口調。相手を「部長」と呼ぶ。">
+              <input type="text" id="edit-char-b-speech" placeholder="包容力のある大人の口調、Akiraの猛アプローチに少しタジタジしつつも受け入れる態度。">
             </div>
           </div>
         </div>

@@ -225,16 +225,16 @@ function loadFromLocalStorage() {
         id: "couple-default-1",
         relationship: "係長と営業部長。社内では秘密の恋人同士。",
         intimacy: "secret_lovers",
-        partnerA: { name: "Akira", description: "34歳の営業係長。優秀で仕事ができるが、上司のKenjiに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-        partnerB: { name: "Kenji", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Akiraの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Akiraの猛アプローチに少しタジタジしつつも受け入れる態度。" },
+        partnerA: { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
+        partnerB: { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" },
         episodes: []
       },
       {
         id: "couple-default-2",
         relationship: "常連の大学生と図書館の主任司書。",
         intimacy: "slowburn",
-        partnerA: { name: "Riku", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-        partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥 of 瞳が妖艶で底知れない雰囲気があるが、年下のRikuの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rikuに迫られると照れる大人の口調。" },
+        partnerA: { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
+        partnerB: { name: "Arthur", description: "45歳の知的な図書館司書. 眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" },
         episodes: []
       }
     ];
@@ -381,22 +381,22 @@ function setupEventListeners() {
     }
   });
 
-  // Couplings and stories reset
+// Couplings and stories reset
   DOM.btnResetOnlyCouplings.addEventListener("click", () => {
     if (confirm("すべてのカップリングと連載履歴を初期化しますか？\n登録したカスタムカップリング、連載中の履歴（あらすじ）が消去され、デフォルトの「年下（攻）×年上（受）」設定に戻します。学習日数や成績記録は消えません。")) {
       state.couplings = [
         {
           id: "couple-default-1",
           relationship: "係長と営業部長。社内では秘密の恋人同士。",
-          partnerA: { name: "Akira", description: "34歳の営業係長。優秀で仕事ができるが、上司のKenjiに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-          partnerB: { name: "Kenji", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Akiraの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Akiraの猛アプローチに少しタジタジしつつも受け入れる態度。" },
+          partnerA: { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
+          partnerB: { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" },
           episodes: []
         },
         {
           id: "couple-default-2",
           relationship: "常連の大学生と図書館の主任司書。",
-          partnerA: { name: "Riku", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-          partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥 of 瞳が妖艶で底知れない雰囲気があるが、年下のRikuの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rikuに迫られると照れる大人の口調。" },
+          partnerA: { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
+          partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" },
           episodes: []
         }
       ];
@@ -462,8 +462,8 @@ function switchView(viewId) {
 // 属性タグによる生成用データベース
 const ATTRIBUTE_DATABASE = {
   names: {
-    seme: ["Leo", "Julian", "Ren", "Riku", "Kai", "Shin", "Ian", "Noah", "Ethan", "Oliver", "Lucas", "Liam", "Daniel", "Dylan", "Austin", "Tyler", "Evan", "Nathan", "Aiden", "Cole"],
-    uke: ["Arthur", "Kenji", "Haruto", "Yuki", "Sora", "Masaki", "Kei", "Eliot", "Liam", "Oliver", "Noel", "Rin", "Aoi", "Toma", "Leon", "Felix", "Nico", "Jude", "Milo", "Toby"]
+    seme: ["Leo", "Julian", "Ray", "Ryan", "Gavin", "Connor", "Ian", "Noah", "Ethan", "Oliver", "Lucas", "Liam", "Daniel", "Dylan", "Austin", "Tyler", "Evan", "Nathan", "Aiden", "Cole"],
+    uke: ["Arthur", "Kevin", "Hugo", "Luke", "Sean", "Finn", "Theo", "Eliot", "Liam", "Oliver", "Noel", "Arlo", "Sasha", "Oscar", "Leon", "Felix", "Nico", "Jude", "Milo", "Toby"]
   },
   situations: {
     "sit-school": { label: "学園もの", phrase: "学園生活を舞台にした", intimacy: "slowburn" },
@@ -491,61 +491,71 @@ const ATTRIBUTE_DATABASE = {
   personalities: {
     "rel-friend": { 
       label: "親友", 
-      desc: "何でも気兼ねなく相談できる強い絆で結ばれた親友同士。", 
+      descSeme: "相手を何でも気兼ねなく相談できる唯一無二の親友として大切に思っている性格。", 
+      descUke: "相手に絶大な信頼を寄せ、何でも相談できる親友として接している性格。", 
       speechSeme: "フランクで遠慮のない友達口調。「おい、○○」と親しげに呼ぶ。",
       speechUke: "素直に何でも話せる親友の口調。相手を「○○」と名前で呼ぶ。"
     },
     "rel-rival": { 
       label: "ライバル", 
-      desc: "互いに実力を認め合いながらも、事あるごとに張り合うライバル同士。",
+      descSeme: "相手の実力を誰よりも認めつつ、絶対に負けたくないと闘志を燃やす負けず嫌いな性格。",
+      descUke: "相手を最高の好敵手と認め、ライバルとして常に競い合おうとするプライドの高い性格。",
       speechSeme: "不敵で強気なライバル口調。「フッ、○○、負ける気はないからな」",
       speechUke: "プライドが高く競い合う口調。「フン、○○こそ、足元をすくわれないようにね」"
     },
     "rel-childhood": { 
       label: "幼馴染み", 
-      desc: "幼い頃からずっと一緒に過ごし、お互いの弱みも知り尽くしている幼馴染み。",
+      descSeme: "幼い頃から相手と一緒に過ごし、誰よりも相手のすべてを知り尽くしている性格。",
+      descUke: "昔からずっと隣にいるのが当たり前で、相手の前では無防備に甘えられる性格。",
       speechSeme: "少し照れくさそうな、幼馴染みならではの甘えと独占欲が入り混じる口調。",
       speechUke: "昔からの関係で無防備に接する安心しきった口調。"
     },
     "rel-tsundere": { 
       label: "ツンデレ", 
-      desc: "本当は好意があるのに照れ隠しで冷たく接してしまい、後から後悔するツンデレな性格。",
+      descSeme: "本当は好意があるのに照れ隠しで冷たく接してしまい、後から一人で悶々と悩むツンデレな性格。",
+      descUke: "素直になれず、照れ隠しでつい口を尖らせて反抗的な態度をとってしまう愛らしいツンデレ性格。",
       speechSeme: "「べ、別にお前のためだけにやったわけじゃない…！」とそっけない態度をとる。",
       speechUke: "「フン、勘違いしないでよね…！」と頬を染めて反論するツンデレ口調。"
     },
     "rel-oresama": { 
       label: "オレ様", 
-      desc: "自信家で尊大、常に主導権を握りたがるオレ様タイプ。",
+      descSeme: "自信家で尊大、常に主導権を握りたがるオレ様タイプ。",
+      descUke: "お高くとまって高飛車な態度を取りつつも、内面では深く愛されたいツンとしたオレ様系受け。",
       speechSeme: "傲慢で余裕に満ちた命令口調。「お前は黙って俺に従っていればいいんだよ」",
       speechUke: "強引さに呆れつつも従う、少し反抗的なオレ様いなし口調。"
     },
     "rel-supadari": { 
       label: "スパダリ", 
-      desc: "容姿・スペック・包容力のすべてが完璧で、相手を溺愛するスーパーダーリン。",
+      descSeme: "容姿・スペック・包容力のすべてが完璧で、相手を溺愛するスーパーダーリン。",
+      descUke: "容姿端麗で有能、かつパートナーに惜しみない甘やかしと溺愛を向ける頼もしいスパダリ系受け。",
       speechSeme: "優雅で余裕たっぷり、深い愛で相手を包み込むスパダリ敬語。「君のすべてを私に委ねて」",
       speechUke: "スパダリの完璧さに照れながらも甘える愛され口調。"
     },
     "rel-dog": { 
       label: "ワンコ", 
-      desc: "人懐っこく真っ直ぐに懐き、相手への好意を全身で表現するワンコ系。",
+      descSeme: "人懐っこく真っ直ぐに懐き、相手への好意を全身の尻尾を振るように表現するワンコ系攻め。",
+      descUke: "人懐っこく甘え上手で、相手の後ろを嬉しそうについて回る健気なワンコ系受け。",
       speechSeme: "「○○さん！ずっと待ってたんですよ！」と尻尾を振るような元気な敬語口調。",
       speechUke: "「よしよし」と頭を優しく撫でる口調。"
     },
     "rel-wet-noodle": { 
       label: "ヘタレ攻", 
-      desc: "相手のことが好きすぎるあまり、肝心なところで弱気になってしまうヘタレな攻め。",
+      descSeme: "相手のことが好きすぎるあまり、肝心なところで弱気になってしまうヘタレな攻め。",
+      descUke: "ヘタレな攻めに少し呆れつつも、母性本能をくすぐられて自分から受け入れる包容力のある性格。",
       speechSeme: "「う、嬉しくて緊張しちゃって…嫌われないかな」とオドオドしながらも離さない口調。",
       speechUke: "ヘタレさにため息をつきつつ、自分からリードしてあげる優しい口調。"
     },
     "rel-possessive": { 
       label: "独占欲", 
-      desc: "他の誰にも触れさせたくない、自分だけのものにしておきたいという非常に強い独占欲を持つ。",
+      descSeme: "他の誰にも触れさせたくない、相手を自分だけのものにしておきたいという非常に強い独占欲を持つ性格。",
+      descUke: "相手への強い執着と嫉妬心から、自分だけのものとして閉じ込めておきたいほどの重い独占欲を持つ性格。",
       speechSeme: "「お前の目には俺だけが映っていればいいんだ」と低い声で囁く重い独占欲口調。",
       speechUke: "束縛に戸惑いつつも、深く愛されていることに悦びを感じる口調。"
     },
     "rel-yandere": { 
       label: "ヤンデレ", 
-      desc: "愛が深すぎるあまりに精神的な脆さを見せ、執着心が極限に達しているヤンデレ。",
+      descSeme: "愛が深すぎるあまりに精神的な危うさを見せ、相手への執着心が極限に達しているヤンデレ。",
+      descUke: "相手からの重すぎる愛を受け止めつつ、自身も狂信的な依存と執着を向けているヤンデレ受け。",
       speechSeme: "「ねえ○○、僕以外の人間と話さないで…お願いだよ？」と冷徹な熱情を隠す口調。",
       speechUke: "「君が壊れてしまいそうで怖いよ」と気圧されながらも抱きとめる口調。"
     }
@@ -568,9 +578,14 @@ function handleGenerateByTags() {
   });
 
   const situationTags = checkedTags.filter(t => t.startsWith("sit-"));
-  const featureTags = checkedTags.filter(t => t.startsWith("feat-"));
-  const personalityTags = checkedTags.filter(t => t.startsWith("rel-"));
+  const commonFeatureTags = checkedTags.filter(t => t.startsWith("feat-"));
   const toneTags = checkedTags.filter(t => t.startsWith("tone-"));
+  
+  const semeFeatureTags = checkedTags.filter(t => t.startsWith("seme-feat-"));
+  const ukeFeatureTags = checkedTags.filter(t => t.startsWith("uke-feat-"));
+  
+  const semePersonalityTags = checkedTags.filter(t => t.startsWith("seme-rel-"));
+  const ukePersonalityTags = checkedTags.filter(t => t.startsWith("uke-rel-"));
 
   let nameA = "";
   let nameB = "";
@@ -598,35 +613,41 @@ function handleGenerateByTags() {
     currentIntimacy = sitInfo.intimacy;
   }
 
-  let selectedFeatures = [];
-  let featureDescs = [];
-  if (featureTags.length > 0) {
-    selectedFeatures = [...featureTags];
-  } else {
-    if (Math.random() < 0.3) {
-      const keys = Object.keys(ATTRIBUTE_DATABASE.features);
-      selectedFeatures.push(keys[Math.floor(Math.random() * keys.length)]);
-    }
-  }
-  selectedFeatures.forEach(tag => {
+  let semeFeatureDescs = [];
+  let ukeFeatureDescs = [];
+  let commonFeatureDescs = [];
+
+  commonFeatureTags.forEach(tag => {
     const feat = ATTRIBUTE_DATABASE.features[tag];
-    if (feat) featureDescs.push(feat.desc);
+    if (feat) commonFeatureDescs.push(feat.desc);
+  });
+
+  semeFeatureTags.forEach(tag => {
+    const key = tag.substring(5); // strip "seme-"
+    const feat = ATTRIBUTE_DATABASE.features[key];
+    if (feat) semeFeatureDescs.push(feat.desc);
+  });
+
+  ukeFeatureTags.forEach(tag => {
+    const key = tag.substring(4); // strip "uke-"
+    const feat = ATTRIBUTE_DATABASE.features[key];
+    if (feat) ukeFeatureDescs.push(feat.desc);
   });
 
   let pSemeTag = "";
-  let pUkeTag = "";
-  let selectedPersonalities = [];
-  
-  if (personalityTags.length > 0) {
-    selectedPersonalities = [...personalityTags];
-    pSemeTag = selectedPersonalities[0];
-    pUkeTag = selectedPersonalities[1] || selectedPersonalities[0];
+  if (semePersonalityTags.length > 0) {
+    pSemeTag = semePersonalityTags[0].substring(5); // strip "seme-"
   } else {
     const keys = Object.keys(ATTRIBUTE_DATABASE.personalities);
     pSemeTag = keys[Math.floor(Math.random() * keys.length)];
-    do {
-      pUkeTag = keys[Math.floor(Math.random() * keys.length)];
-    } while (pSemeTag === pUkeTag && keys.length > 1);
+  }
+
+  let pUkeTag = "";
+  if (ukePersonalityTags.length > 0) {
+    pUkeTag = ukePersonalityTags[0].substring(4); // strip "uke-"
+  } else {
+    const keys = Object.keys(ATTRIBUTE_DATABASE.personalities);
+    pUkeTag = keys[Math.floor(Math.random() * keys.length)];
   }
 
   const semeP = ATTRIBUTE_DATABASE.personalities[pSemeTag];
@@ -644,29 +665,24 @@ function handleGenerateByTags() {
     tonePhrase = ATTRIBUTE_DATABASE.tones[tTag].phrase;
   }
 
-  const getLabelShort = (tag, dbGroup) => {
-    return dbGroup[tag] ? dbGroup[tag].label : "";
-  };
-  
-  const semeLabel = getLabelShort(pSemeTag, ATTRIBUTE_DATABASE.personalities);
-  const ukeLabel = getLabelShort(pUkeTag, ATTRIBUTE_DATABASE.personalities);
+  const semeLabel = semeP.label;
+  const ukeLabel = ukeP.label;
   
   const relationshipText = `${sitPhrase}${semeLabel}攻め${nameA}と、${ukeLabel}受け${nameB}の関係。${tonePhrase}`;
 
   let semeDescParts = [
-    `${nameA}。性格は${semeP.desc}`,
-    ...featureDescs.slice(0, 1)
+    `${nameA}。性格は${semeP.descSeme || semeP.desc}`,
+    ...semeFeatureDescs,
+    ...commonFeatureDescs
   ];
   const semeDescText = semeDescParts.filter(Boolean).join(" ");
   const semeSpeechText = (semeP.speechSeme || "丁寧で落ち着いたトーン。").replace("○○", nameB);
 
   let ukeDescParts = [
-    `${nameB}。性格は${ukeP.desc}`,
-    ...featureDescs.slice(1, 2)
+    `${nameB}。性格は${ukeP.descUke || ukeP.desc}`,
+    ...ukeFeatureDescs,
+    ...commonFeatureDescs
   ];
-  if (ukeDescParts.length === 1 && featureDescs.length > 0 && Math.random() < 0.5) {
-    ukeDescParts.push(featureDescs[0]);
-  }
   const ukeDescText = ukeDescParts.filter(Boolean).join(" ");
   const ukeSpeechText = (ukeP.speechUke || "親しみやすい大人の口調。").replace("○○", nameA);
 
@@ -1520,10 +1536,11 @@ function startAudio() {
   window.speechSynthesis.cancel();
 
   state.speechUtterance = new SpeechSynthesisUtterance(state.currentContent.english);
+  state.speechUtterance.lang = "en-US";
   state.speechUtterance.rate = state.speechSpeed;
   
   const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(v => v.lang.startsWith("en-")) || voices[0];
+  const englishVoice = voices.find(v => v.lang && (v.lang.startsWith("en-") || v.lang.toLowerCase().includes("en"))) || voices[0];
   if (englishVoice) {
     state.speechUtterance.voice = englishVoice;
   }
@@ -1743,7 +1760,7 @@ function renderWelcomeDialog() {
 
   const dialoguesB = [
     "「お帰りなさい！今日は『instead of 〜（〜の代わりに）』を紹介しますね。How about coffee instead of tea?（お茶の代わりにコーヒーはいかがですか？）疲れているなら、僕の淹れたコーヒーで一息ついてから英語を読みましょう」",
-    "「お疲れ様です。英検頻出の『take care of 〜（〜の世話をする/処理する）』ですが、Take care of yourself.（お体に気をつけて）という挨拶でもよく使います。僕は……あなたのことを何から何までお世哀しちゃいたい気分ですけどね」",
+    "「お疲れ様です。英検頻出の『take care of 〜（〜の世話をする/処理する）』ですが、Take care of yourself.（お体に気をつけて）という挨拶でもよく使います。僕は……あなたのことを何から何までお世話しちゃいたい気分ですけどね」",
     "「来たね。今日は『not only A but also B（AだけでなくBも）』という重要構文だよ。You are not only smart but also very kind.（あなたは賢いだけでなく、とても優しい）。ふたりで学ぶと、なんだか普段より張り切っちゃうな」",
     "「お疲れ様です。今日は『be worth 〜ing（〜する価値がある）』ですね。This story is worth reading.（このストーリーは読む価値がある）。あなたの努力は、絶対に将来何倍もの価値になって返ってきますよ」",
     "「今日は『so that A can B（AがBできるように）』です。I support you so that you can succeed.（あなたが成功できるように、私は応援しています）。目的を表す便利な接続詞ですよ」",
