@@ -1,31 +1,19 @@
 /**
- * Fujolingo Core Application Logic (Adult Workplace Theme)
+ * FavoRead Core Application State
  */
-
-// Application State
 const state = {
-  currentView: "view-home", // Home view is active by default
+  currentView: "view-home",
   apiKey: "",
-  
-  // Coupling list (A x B pairs)
   couplings: [],
   selectedCouplingId: "",
-  generationMode: "standalone", // "standalone" or "series"
-  
-  // Current loaded content (either generated or preset)
+  generationMode: "standalone",
   currentContent: null,
   studyModeActive: false,
-  
-  // Audio Synthesis
   speechUtterance: null,
   speechSpeed: 1.0,
-  
-  // Vocabulary Deck
-  vocabList: [], // Saved vocab cards: { word, pos, meaning, context, level, importance, id }
-  vocabQueue: [], // Current active review list
+  vocabList: [],
+  vocabQueue: [],
   currentVocabIndex: 0,
-  
-  // Statistics & Streak
   stats: {
     totalRead: 0,
     totalCorrect: 0,
@@ -35,7 +23,6 @@ const state = {
   }
 };
 
-// DOM Elements
 const DOM = {
   tabs: document.querySelectorAll(".nav-tab"),
   views: document.querySelectorAll(".app-view"),
@@ -214,7 +201,7 @@ function loadFromLocalStorage() {
     state.couplings = [];
   }
 
-  // Auto-detect and fix corrupted text from legacy localStorage
+  // Auto-detect and fix corrupted text from legacy localStorage or legacy characters
   if (state.couplings.length > 0) {
     const serialized = JSON.stringify(state.couplings);
     const hasCorruption = serialized.includes("\ufffd") || 
@@ -222,8 +209,13 @@ function loadFromLocalStorage() {
                           serialized.includes("") ||
                           /[謾蜒縺ﾃ蜿]/.test(serialized) ||
                           state.couplings.some(c => c.relationship && (c.relationship.includes("ﾃ") || c.relationship.includes("蜿")));
-    if (hasCorruption) {
-      console.warn("Corrupted legacy couplings detected. Auto-resetting to default.");
+    const hasLegacyCoupling = state.couplings.some(c => 
+      c.partnerA.name === "Alex" || 
+      c.partnerB.name === "Kurt" || 
+      (c.id === "couple-default-1" && c.partnerA.name !== "Sorrento")
+    );
+    if (hasCorruption || hasLegacyCoupling) {
+      console.warn("Corrupted legacy couplings or default characters detected. Auto-resetting to default.");
       state.couplings = [];
     }
   }
@@ -233,18 +225,18 @@ function loadFromLocalStorage() {
     state.couplings = [
       {
         id: "couple-default-1",
-        relationship: "係長と営業部長。社内では秘密の恋人同士。",
-        intimacy: "secret_lovers",
-        partnerA: { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-        partnerB: { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" },
-        episodes: []
-      },
-      {
-        id: "couple-default-2",
-        relationship: "常連の大学生と図書館の主任司書。",
+        relationship: "主従関係。世界各所を慰問する旅に出ている二人。",
         intimacy: "slowburn",
-        partnerA: { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-        partnerB: { name: "Arthur", description: "45歳の知的な図書館司書. 眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" },
+        partnerA: { 
+          name: "Sorrento", 
+          description: "海魔女（セイレーン）のソレント。ジュリアン・ソロの従者であり守護者。非常にシャイで照れ屋であり、自分から強引にリードすることはないが、心からジュリアン様を護ろうとする誠実な年下攻め。", 
+          speechStyle: "基本は丁寧で実直な敬語口調。ジュリアン様に対して誠実かつ献身的に接するが、からかわれたり距離が近くなるとすぐに赤くなって照れてしまうシャイなトーン。" 
+        },
+        partnerB: { 
+          name: "Julian", 
+          description: "ジュリアン・ソロ。ソロ家を率いる若き貴公子。社交界に堪能で優雅で気品があり、恋愛や色ごとにも慣れている。シャイなソレントをからかったり翻弄したりする上品で余裕のある美しい年上受け。", 
+          speechStyle: "気品に溢れた優雅な言葉遣い。ソレントを信頼し、彼の照れる反応を優しく楽しむ大人びた余裕のあるトーン。" 
+        },
         episodes: []
       }
     ];
@@ -304,6 +296,13 @@ function setupEventListeners() {
   const btnHomeToGen = document.getElementById("btn-home-to-generator");
   if (btnHomeToGen) {
     btnHomeToGen.addEventListener("click", () => {
+      switchView("view-generator");
+    });
+  }
+
+  const btnHomeGoBookshelf = document.getElementById("btn-home-go-bookshelf");
+  if (btnHomeGoBookshelf) {
+    btnHomeGoBookshelf.addEventListener("click", () => {
       switchView("view-generator");
     });
   }
@@ -397,16 +396,18 @@ function setupEventListeners() {
       state.couplings = [
         {
           id: "couple-default-1",
-          relationship: "係長と営業部長。社内では秘密の恋人同士。",
-          partnerA: { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-          partnerB: { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" },
-          episodes: []
-        },
-        {
-          id: "couple-default-2",
-          relationship: "常連の大学生と図書館の主任司書。",
-          partnerA: { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-          partnerB: { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" },
+          relationship: "主従関係。世界各所を慰問する旅に出ている二人。",
+          intimacy: "slowburn",
+          partnerA: { 
+            name: "Sorrento", 
+            description: "海魔女（セイレーン）のソレント。ジュリアン・ソロの従者であり守護者。非常にシャイで照れ屋であり、自分から強引にリードすることはないが、心からジュリアン様を護ろうとする誠実な年下攻め。", 
+            speechStyle: "基本は丁寧で実直な敬語口調。ジュリアン様に対して誠実かつ献身的に接するが、からかわれたり距離が近くなるとすぐに赤くなって照れてしまうシャイなトーン。" 
+          },
+          partnerB: { 
+            name: "Julian", 
+            description: "ジュリアン・ソロ。ソロ家を率いる若き貴公子。社交界に堪能で優雅で気品があり、恋愛や色ごとにも慣れている。シャイなソレントをからかったり翻弄したりする上品で余裕のある美しい年上受け。", 
+            speechStyle: "気品に溢れた優雅な言葉遣い。ソレントを信頼し、彼の照れる反応を優しく楽しむ大人びた余裕のあるトーン。" 
+          },
           episodes: []
         }
       ];
@@ -416,7 +417,7 @@ function setupEventListeners() {
       renderCouplingList();
       renderBookshelf();
       renderHomeQuickCouplings();
-      alert("カップリングおよび連載履歴を初期化し、デフォルトの「年下×年上」設定に戻しました！");
+      alert("カップリングおよび連載履歴を初期化し、デフォルトの設定に戻しました！");
     }
   });
 
@@ -933,6 +934,8 @@ function renderBookshelf() {
       ? episodes.map(ep => `【第${ep.episodeNumber}話】${ep.summary}`).join("\n")
       : "まだエピソード履歴がありません。生成するとこれが第1話になります。";
 
+    let selectedTrope = "Resting at a cozy cafe during their travels around the world";
+
     card.innerHTML = `
       <div class="bookshelf-title-row">
         <h4 class="bookshelf-couple-name">
@@ -943,9 +946,13 @@ function renderBookshelf() {
         </span>
       </div>
 
+      <p style="font-size: 11.5px; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.45;">
+        <strong>関係性:</strong> ${couple.relationship}
+      </p>
+
       <div>
         <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">これまでのあらすじ</div>
-        <div class="bookshelf-history-box">${historyText}</div>
+        <div class="bookshelf-history-box" style="margin-bottom: 12px;">${historyText}</div>
       </div>
 
       <div>
@@ -953,17 +960,57 @@ function renderBookshelf() {
         <div class="bookshelf-archive-list"></div>
       </div>
 
-      <div class="bookshelf-action-row">
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <label style="font-size: 11px; font-weight: bold; color: var(--text-muted);">次話レベル:</label>
-          <select class="bookshelf-level-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-            <option value="pre2">準2級</option>
-            <option value="grade2">2級</option>
-          </select>
+      <div style="border-top: 1px dashed var(--border); padding-top: 16px; margin-top: 16px;">
+        <div style="font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          ✨ ドイツ語ストーリーを生成
         </div>
-        <button class="btn-primary btn-bookshelf-write" style="flex: 1; padding: 6px 14px; font-size: 12px; min-height: 28px; border-radius: var(--radius-pill); cursor: pointer;">
-          ✨ 続きを生成する (第${nextEpNum}話)
-        </button>
+        
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">シチュエーションを選択</div>
+          <div class="quick-trope-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="pill-btn quick-trope-btn active" data-trope="Resting at a cozy cafe during their travels around the world" style="font-size: 11px; padding: 4px 10px;">旅先での休息</button>
+            <button class="pill-btn quick-trope-btn" data-trope="Sorrento playing a concert with his flute at a local music hall while Julian watches proudly" style="font-size: 11px; padding: 4px 10px;">音楽堂での演奏会</button>
+            <button class="pill-btn quick-trope-btn" data-trope="Standing on a quiet pier at sunset, feeling the sea breeze and talking about their journey" style="font-size: 11px; padding: 4px 10px;">潮風の埠頭</button>
+            <button class="pill-btn quick-trope-btn" data-trope="Walking through a vibrant local street market, buying ingredients and small gifts" style="font-size: 11px; padding: 4px 10px;">路地裏の市場</button>
+            <button class="pill-btn quick-trope-btn" data-trope="Sitting in a quiet hotel lobby in the evening, chatting about the day's travels over tea" style="font-size: 11px; padding: 4px 10px;">ホテルのロビー</button>
+            <button class="pill-btn quick-trope-btn" data-trope="random" style="font-size: 11px; padding: 4px 10px;">🎲 ランダム</button>
+            <button class="pill-btn quick-trope-btn" data-trope="custom" style="font-size: 11px; padding: 4px 10px;">✏️ カスタム</button>
+          </div>
+        </div>
+
+        <!-- 詳細設定 (折りたたみ) -->
+        <details class="home-detail-settings" style="margin-bottom: 12px;">
+          <summary>詳細設定 ⚙️</summary>
+          <div class="detail-settings-content">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; margin-bottom: 4px;">教材のタイプ</label>
+              <select class="quick-type-select" style="width: 100%; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                <option value="story" selected>ショートストーリー (SS) - 掛け合いと心理描写</option>
+                <option value="essay">カルチャー・シチュエーション解説エッセイ</option>
+              </select>
+            </div>
+            <div class="form-group quick-custom-trope-group" style="display: none; margin-bottom: 0; margin-top: 6px;">
+              <label style="font-size: 11px; margin-bottom: 4px;">カスタムシチュエーション (日本語/ドイツ語テーマ)</label>
+              <textarea class="quick-custom-trope" rows="2" placeholder="例：ドイツのライン川を下る船のデッキで、風に吹かれながら話す二人..." style="width: 100%; font-size: 11px; padding: 6px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); resize: vertical;"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <div style="display: flex; gap: 10px; align-items: center; border-top: 1px dashed var(--border); padding-top: 12px;">
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+            <select class="bookshelf-level-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+              <option value="pre2">ドイツ語 A1 (超初級)</option>
+              <option value="grade2">ドイツ語 A2 (初級)</option>
+            </select>
+            <select class="bookshelf-mode-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+              <option value="series" ${hasEpisodes ? 'selected' : ''}>連載 (第${nextEpNum}話として保存)</option>
+              <option value="standalone">単発ストーリー</option>
+            </select>
+          </div>
+          <button class="btn-primary btn-bookshelf-write" style="flex: 1; padding: 6px 14px; font-size: 12px; min-height: 28px; border-radius: var(--radius-pill); cursor: pointer;">
+            ✨ ストーリーを生成する
+          </button>
+        </div>
       </div>
     `;
 
@@ -980,7 +1027,7 @@ function renderBookshelf() {
         item.innerHTML = `
           <div class="preset-info">
             <h5 style="font-size: 13px; font-weight: 700; color: var(--accent-light); margin: 0;">${ep.title}</h5>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">第${ep.episodeNumber}話 • ${ep.level === "pre2" ? "準2級" : "2級"} • ${ep.summary}</p>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">第${ep.episodeNumber}話 • ${ep.level === "pre2" ? "ドイツ語 A1" : "ドイツ語 A2"} • ${ep.summary}</p>
           </div>
           <span class="preset-badge badge-story" style="font-size: 9px; padding: 2px 6px;">第${ep.episodeNumber}話</span>
         `;
@@ -993,31 +1040,74 @@ function renderBookshelf() {
         archiveList.appendChild(item);
       });
     } else {
-      archiveList.innerHTML = `<div style="font-size: 11px; color: var(--text-dimmed); text-align: center; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-sm);">まだエピソード履歴がありません。「続きを生成」するか、ホーム画面から第1話を生成してください。</div>`;
+      archiveList.innerHTML = `<div style="font-size: 11px; color: var(--text-dimmed); text-align: center; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-sm);">まだエピソード履歴がありません。シチュエーションを選んで最初のストーリーを生成してください。</div>`;
     }
 
-    // Bind "Write Next" button
+    // Bind Trope buttons
+    const tropeButtons = card.querySelectorAll(".quick-trope-btn");
+    const customTropeGroup = card.querySelector(".quick-custom-trope-group");
+    const customTropeTextarea = card.querySelector(".quick-custom-trope");
+    const detailsEl = card.querySelector(".home-detail-settings");
+
+    tropeButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        tropeButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedTrope = btn.getAttribute("data-trope");
+
+        if (selectedTrope === "custom") {
+          customTropeGroup.style.display = "block";
+          detailsEl.open = true;
+          customTropeTextarea.focus();
+        } else {
+          customTropeGroup.style.display = "none";
+        }
+      });
+    });
+
+    // Bind "Generate" button
     const writeBtn = card.querySelector(".btn-bookshelf-write");
     writeBtn.addEventListener("click", async () => {
       const levelSelect = card.querySelector(".bookshelf-level-select");
+      const modeSelect = card.querySelector(".bookshelf-mode-select");
+      const typeSelect = card.querySelector(".quick-type-select");
+      const customTropeVal = customTropeTextarea.value.trim();
+
+      if (selectedTrope === "custom" && !customTropeVal) {
+        alert("カスタムシチュエーションを入力してください。");
+        customTropeTextarea.focus();
+        return;
+      }
 
       state.selectedCouplingId = couple.id;
-      state.generationMode = "series";
+      state.generationMode = modeSelect.value;
 
-      // Trigger series generation
+      let tropeVal = selectedTrope;
+      if (selectedTrope === "random") {
+        const tropes = [
+          "Resting at a cozy cafe during their travels around the world",
+          "Sorrento playing a concert with his flute at a local music hall while Julian watches proudly",
+          "Standing on a quiet pier at sunset, feeling the sea breeze and talking about their journey",
+          "Walking through a vibrant local street market, buying ingredients and small gifts",
+          "Sitting in a quiet hotel lobby in the evening, chatting about the day's travels over tea"
+        ];
+        tropeVal = tropes[Math.floor(Math.random() * tropes.length)];
+      }
+
       const options = {
         level: levelSelect.value,
-        type: "story", // Series continuation is always a story
-        trope: "Continuation of the previous story", // Heuristically set trope
-        customTrope: "",
-        mode: "series",
+        type: typeSelect.value,
+        trope: tropeVal,
+        customTrope: selectedTrope === "custom" ? customTropeVal : "",
+        mode: modeSelect.value,
         onStart: () => {
           writeBtn.disabled = true;
           writeBtn.innerText = "✍️ 執筆中...";
         },
         onEnd: () => {
           writeBtn.disabled = false;
-          writeBtn.innerText = `✨ 続きを生成する (第${nextEpNum}話)`;
+          writeBtn.innerText = "✨ ストーリーを生成する";
         }
       };
 
@@ -1107,188 +1197,7 @@ async function handleGeneration(customOptions = {}) {
 
 // ── RENDER HOME QUICK GENERATOR (今日の二人) ──
 function renderHomeQuickCouplings() {
-  if (!DOM.homeQuickCouplingsContainer) return;
-  DOM.homeQuickCouplingsContainer.innerHTML = "";
-
-  if (state.couplings.length === 0) {
-    DOM.homeQuickCouplingsContainer.innerHTML = `<div style="font-size: 12px; color: var(--text-dimmed); text-align: center; padding: 12px;">設定タブからカップリングを登録してください</div>`;
-    return;
-  }
-
-  state.couplings.forEach((couple) => {
-    if (!couple || !couple.partnerA || !couple.partnerB) return;
-    const card = document.createElement("div");
-    card.className = "preset-card-today";
-    card.style.flexDirection = "column";
-    card.style.alignItems = "stretch";
-    card.style.gap = "12px";
-    card.style.cursor = "pointer";
-    card.style.transition = "transform 0.1s ease, border-color 0.2s ease";
-
-    const isActive = couple.id === state.selectedCouplingId;
-    if (isActive) {
-      card.style.border = "2px solid var(--accent)";
-      card.style.boxShadow = "0 0 12px rgba(13, 148, 136, 0.15)";
-      card.style.background = "linear-gradient(135deg, rgba(13, 148, 136, 0.04) 0%, var(--bg-elevated) 100%)";
-    } else {
-      card.style.border = "1px solid var(--border)";
-      card.style.background = "var(--bg-elevated)";
-    }
-
-    const epCount = couple.episodes ? couple.episodes.length : 0;
-    const badgeText = epCount > 0 ? `連載中: 第${epCount}話まで` : "新規ストーリー";
-
-    let selectedTrope = "Working late at the office together";
-
-    card.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-        <h4 style="font-size: 16px; color: var(--accent); font-weight: 800; margin: 0;">
-          ${couple.partnerA.name}×${couple.partnerB.name} ${isActive ? '<span style="font-size: 10px; color: var(--accent); margin-left: 6px; font-weight: bold; background: rgba(13, 148, 136, 0.1); padding: 2px 6px; border-radius: 4px;">選択中</span>' : ''}
-        </h4>
-        <span class="preset-badge badge-story" style="font-size: 9px; padding: 2px 6px;">${badgeText}</span>
-      </div>
-      
-      <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-        <strong>関係性:</strong> ${couple.relationship}
-      </p>
-
-      <div>
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">シチュエーションを選択</div>
-        <div class="quick-trope-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="pill-btn quick-trope-btn active" data-trope="Working late at the office together" style="font-size: 11px; padding: 4px 10px;">残業オフィス</button>
-          <button class="pill-btn quick-trope-btn" data-trope="Sharing a taxi in the rain after a business dinner" style="font-size: 11px; padding: 4px 10px;">雨のタクシー</button>
-          <button class="pill-btn quick-trope-btn" data-trope="Only one bed at the hotel" style="font-size: 11px; padding: 4px 10px;">ホテルで1ベッド</button>
-          <button class="pill-btn quick-trope-btn" data-trope="random" style="font-size: 11px; padding: 4px 10px;">🎲 ランダム</button>
-          <button class="pill-btn quick-trope-btn" data-trope="custom" style="font-size: 11px; padding: 4px 10px;">✏️ カスタム</button>
-        </div>
-      </div>
-
-      <!-- 詳細設定 (折りたたみ) -->
-      <details class="home-detail-settings">
-        <summary>詳細設定 ⚙️</summary>
-        <div class="detail-settings-content">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label style="font-size: 11px; margin-bottom: 4px;">教材のタイプ</label>
-            <select class="quick-type-select" style="width: 100%; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-              <option value="story" selected>ショートストーリー (SS) - 掛け合いと心理描写</option>
-              <option value="essay">カルチャー・シチュエーション解説エッセイ</option>
-            </select>
-          </div>
-          <div class="form-group quick-custom-trope-group" style="display: none; margin-bottom: 0; margin-top: 6px;">
-            <label style="font-size: 11px; margin-bottom: 4px;">カスタムシチュエーション (日本語/英語)</label>
-            <textarea class="quick-custom-trope" rows="2" placeholder="例：風邪を引いた部下Akiraの家へお見舞いに行くKenji部長..." style="width: 100%; font-size: 11px; padding: 6px; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); resize: vertical;"></textarea>
-          </div>
-        </div>
-      </details>
-
-      <div style="display: flex; gap: 10px; align-items: center; border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px;">
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <select class="quick-level-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-            <option value="pre2">準2級</option>
-            <option value="grade2">2級</option>
-          </select>
-          <select class="quick-mode-select" style="width: auto; padding: 4px 8px; font-size: 11px; height: 28px; border-radius: var(--radius-pill); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-            <option value="standalone">単発</option>
-            <option value="series" ${epCount > 0 ? 'selected' : ''}>連載</option>
-          </select>
-        </div>
-
-        <button class="btn-primary btn-quick-gen" style="flex: 1; padding: 6px 14px; font-size: 12px; min-height: 28px; border-radius: var(--radius-pill); cursor: pointer;">
-          ✨ 今日の二人
-        </button>
-      </div>
-    `;
-
-    const tropeButtons = card.querySelectorAll(".quick-trope-btn");
-    const customTropeGroup = card.querySelector(".quick-custom-trope-group");
-    const customTropeTextarea = card.querySelector(".quick-custom-trope");
-    const detailsEl = card.querySelector(".home-detail-settings");
-
-    tropeButtons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        tropeButtons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        selectedTrope = btn.getAttribute("data-trope");
-
-        if (selectedTrope === "custom") {
-          customTropeGroup.style.display = "block";
-          detailsEl.open = true;
-          customTropeTextarea.focus();
-        } else {
-          customTropeGroup.style.display = "none";
-        }
-      });
-    });
-
-    const genBtn = card.querySelector(".btn-quick-gen");
-    genBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const levelSelect = card.querySelector(".quick-level-select");
-      const modeSelect = card.querySelector(".quick-mode-select");
-      const typeSelect = card.querySelector(".quick-type-select");
-      const customTropeVal = customTropeTextarea.value.trim();
-
-      if (selectedTrope === "custom" && !customTropeVal) {
-        alert("カスタムシチュエーションを入力してください。");
-        customTropeTextarea.focus();
-        return;
-      }
-
-      state.selectedCouplingId = couple.id;
-      state.generationMode = modeSelect.value;
-
-      let tropeVal = selectedTrope;
-      if (selectedTrope === "random") {
-        const tropes = [
-          "Working late at the office together",
-          "Sharing a taxi in the rain after a business dinner",
-          "Only one bed at the hotel",
-          "Preparing for a presentation late at night",
-          "Quiet afternoon in the library archives",
-          "Rainy evening waiting at the library entrance"
-        ];
-        tropeVal = tropes[Math.floor(Math.random() * tropes.length)];
-      }
-
-      const options = {
-        level: levelSelect.value,
-        type: typeSelect.value,
-        trope: tropeVal,
-        customTrope: selectedTrope === "custom" ? customTropeVal : "",
-        mode: modeSelect.value,
-        onStart: () => {
-          genBtn.disabled = true;
-          genBtn.innerText = "✍️ 執筆中...";
-        },
-        onEnd: () => {
-          genBtn.disabled = false;
-          genBtn.innerHTML = "✨ 今日の二人";
-        }
-      };
-
-      await handleGeneration(options);
-    });
-
-    // Stop propagation of clicks inside controls
-    const stopProps = card.querySelectorAll("select, textarea, details");
-    stopProps.forEach(el => {
-      el.addEventListener("click", (e) => e.stopPropagation());
-    });
-
-    card.addEventListener("click", (e) => {
-      // If active already, do nothing
-      if (state.selectedCouplingId === couple.id) return;
-      
-      state.selectedCouplingId = couple.id;
-      saveToLocalStorage();
-      renderHomeQuickCouplings();
-      renderWelcomeDialog();
-      renderBookshelf();
-    });
-
-    DOM.homeQuickCouplingsContainer.appendChild(card);
-  });
+  // Consolidated into Bookshelf
 }
 
 // ── RENDER PRESETS ──
@@ -1368,7 +1277,7 @@ function loadContent(content, triggerStreak = false) {
   stopAudio();
   
   DOM.readerTitle.innerText = content.title;
-  DOM.readerMetaLevel.innerText = content.level === "pre2" ? "英検 準2級" : "英検 2級";
+  DOM.readerMetaLevel.innerText = content.level === "pre2" ? "ドイツ語 A1" : "ドイツ語 A2";
   DOM.readerMetaTrope.innerText = content.situation || "カスタム";
   DOM.readerMetaWpm.innerText = `${content.wordCount || content.english.split(/\s+/).length} 語`;
 
@@ -1409,11 +1318,11 @@ function loadContent(content, triggerStreak = false) {
   }
 }
 
-// Render taps for each English word
+// Render taps for each English word (Supports German characters)
 function renderEnglishTaps(text) {
-  const tokens = text.split(/([a-zA-Z'-]+)/);
+  const tokens = text.split(/([a-zA-ZäöüÄÖÜß'-]+)/);
   const html = tokens.map(token => {
-    if (/^[a-zA-Z'-]+$/.test(token)) {
+    if (/^[a-zA-ZäöüÄÖÜß'-]+$/.test(token)) {
       const cleanWord = token.toLowerCase();
       return `<span class="word-tap" data-clean-word="${cleanWord}">${token}</span>`;
     }
@@ -1515,7 +1424,7 @@ async function showWordPopover(cleanWord, originalWord) {
     DOM.popDef.innerText = result.meaning;
     
     if (result.level && result.level !== "対象外") {
-      DOM.popLevel.innerText = `英検 ${result.level}`;
+      DOM.popLevel.innerText = `ドイツ語 ${result.level}`;
       DOM.popLevel.style.display = "inline-block";
     }
     if (result.importance) {
@@ -1608,13 +1517,13 @@ function startAudio() {
   window.speechSynthesis.cancel();
 
   state.speechUtterance = new SpeechSynthesisUtterance(state.currentContent.english);
-  state.speechUtterance.lang = "en-US";
+  state.speechUtterance.lang = "de-DE";
   state.speechUtterance.rate = state.speechSpeed;
   
   const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(v => v.lang && (v.lang.startsWith("en-") || v.lang.toLowerCase().includes("en"))) || voices[0];
-  if (englishVoice) {
-    state.speechUtterance.voice = englishVoice;
+  const germanVoice = voices.find(v => v.lang && (v.lang.startsWith("de-") || v.lang.toLowerCase().includes("de"))) || voices[0];
+  if (germanVoice) {
+    state.speechUtterance.voice = germanVoice;
   }
 
   state.speechUtterance.onend = () => {
@@ -1819,33 +1728,32 @@ function renderWelcomeDialog() {
   const charB = currentCouple ? currentCouple.partnerB : null;
 
   const dialoguesA = [
-    "「お疲れ様。今日は『in spite of 〜（〜にもかかわらず）』という熟語を覚えて帰ってほしい。In spite of the rain, we had a good time.（雨にもかかわらず、僕たちは楽しんだ）のように名詞を後ろに置くんだ。……まあ、君と一緒なら大雨でも最高だけどね」",
-    "「お帰り。英語の『as long as 〜』は『〜する限りは』という条件を表すよ。As long as you are here, I am happy.（君がここにいてくれる限り、私は幸せだ）……フフ、今日の学習もその調子で頑張ろう」",
-    "「来たか。今日は『look forward to 〜ing（〜を楽しみに待つ）』をおさらいしよう。I'm looking forward to reading with you.（君と一緒に読むのを楽しみにしているよ）。toの後ろは動詞の原形じゃなく動名詞（ing）にするのが超重要だ。覚えておいて」",
-    "「今日は『prevent A from 〜ing（Aが〜するのを妨げる/防ぐ）』をおさらいしよう。Nothing can prevent me from loving you.（何ものも私が君を愛するのを妨げられない）。……フフ、本音だよ。後半の動名詞を忘れないでね」",
-    "「今日は『in order to 〜（〜するために）』だ。In order to see your smile, I'll do my best.（君の笑顔を見るために、私は全力を尽くすよ）。目的をはっきりさせたい時によく使う表現だね」",
-    "「英語の『make sure to 〜』は『必ず〜する』という意味だ。Make sure to study every day.（必ず毎日勉強するようにね）。まあ、僕を愛することも忘れないでほしいけど」",
-    "「今日は『had better 〜（〜したほうがいい）』をおさらいしよう。You had better rest tonight.（今夜は休んだほうがいい）。had better は強い忠告になるから、目上の人に使う時は注意が必要だよ」",
-    "「今日は『no matter how 〜（どんなに〜だとしても）』を覚えよう。No matter how hard it is, I won't give up.（どんなに困難でも、私は諦めない）。君と一緒なら、どんな英語も乗り越えられるよ」",
-    (charB ? `「今日は『by the time 〜（〜するまでには）』を使ってみよう。By the time you notice, I will be in love with ${charB.name}.（君が気づく頃には、私は${charB.name}に夢中になっているだろう）……なんてね。さあ、始めようか」` : "「今日は『by the time 〜（〜するまでには）』を使おう。今日も一緒に読もうな」")
+    "「あの、ジュリアン様……。今日は朝の挨拶『Guten Morgen（グーテン・モルゲン）』をおさらいしましょう。Guten Morgen, mein Herr.（おはようございます、我が主よ）。……あ、いえ、ドイツ語の例文として口にしただけで、他意はありません！どうかお気になさらず……」",
+    "「ジュリアン様、お帰りなさい。ドイツ語の『Bitte（ビッテ）』には『お願いします』や『どういたしまして』など多くの意味があります。Ein Tee, bitte.（紅茶をお願いします）。……私の淹れたお茶が、ジュリアン様の旅の疲れを少しでも癒やすことができれば嬉しいのですが……」",
+    "「お疲れ様です。今日は『Ich liebe...（私は〜が好きです）』という表現を。Ich liebe Ihre Musik.（私はあなたの奏でる音楽が大好きです）。……と、もしジュリアン様から言われたら、私は嬉しさのあまりフルートを吹き間違えてしまうかもしれません」",
+    "「今日は感謝を伝える『Danke schön（ダンケ・シェーン）』を学びましょう。Danke schön für Ihren Schutz.（守護してくれてありがとう）。……いえ、それは私のセリフです！ジュリアン様をお守りすることは、私の生涯の使命ですから」",
+    "「今日は『Gute Reise（グーテ・ライゼ / 良い旅を）』をおさらいしましょう。Wir haben eine gute Reise.（私たちは素晴らしい旅をしています）。……ええ、ジュリアン様と世界を巡り、人々を救うこの旅路は、私にとって無上の喜びです」",
+    "「ドイツ語で『Gute Nacht（グーテ・ナハト）』は『おやすみなさい』という意味です。Gute Nacht, Julian.（おやすみなさい、ジュリアン様）。旅路でお疲れでしょうから、今夜はどうか早くお休みください」",
+    "「今日は『Es tut mir leid（エス・トゥート・ミア・ライト / ごめんなさい）』です。Es tut mir leid, dass ich rot geworden bin.（赤くなってしまってごめんなさい）。……ジュリアン様にからかわれると、どうしても顔に出てしまって……」",
+    "「今日は出会いの言葉『Freut mich（フロイト・ミッヒ / お会いできて嬉しいです）』を。Es freut mich, Sie zu begleiten.（あなたにお供できて光栄です）。ジュリアン様、いかなる時も私はあなたをお守りいたします」"
   ];
 
   const dialoguesB = [
-    "「お帰りなさい！今日は『instead of 〜（〜の代わりに）』を紹介しますね。How about coffee instead of tea?（お茶の代わりにコーヒーはいかがですか？）疲れているなら、僕の淹れたコーヒーで一息ついてから英語を読みましょう」",
-    "「お疲れ様です。英検頻出の『take care of 〜（〜の世話をする/処理する）』ですが、Take care of yourself.（お体に気をつけて）という挨拶でもよく使います。僕は……あなたのことを何から何までお世話しちゃいたい気分ですけどね」",
-    "「来たね。今日は『not only A but also B（AだけでなくBも）』という重要構文だよ。You are not only smart but also very kind.（あなたは賢いだけでなく、とても優しい）。ふたりで学ぶと、なんだか普段より張り切っちゃうな」",
-    "「お疲れ様です。今日は『be worth 〜ing（〜する価値がある）』ですね。This story is worth reading.（このストーリーは読む価値がある）。あなたの努力は、絶対に将来何倍もの価値になって返ってきますよ」",
-    "「今日は『so that A can B（AがBできるように）』です。I support you so that you can succeed.（あなたが成功できるように、私は応援しています）。目的を表す便利な接続詞ですよ」",
-    "「今日は『would rather A than B（BするよりむしろAしたい）』を紹介します。I would rather study here than go out.（外出するより、むしろここで勉強したいな）。あなたと二人きりで過ごせるなら、どこにも行きたくありません」",
-    "「今日は『on behalf of 〜（〜を代表して / 〜に代わって）』です。On behalf of the staff, thank you.（スタッフを代表してお礼申し上げます）。これもビジネスで頻出の重要表現ですね」",
-    (charA ? `「お帰りなさい！今日は『used to 〜（かつて〜したものだ）』です。I used to study alone, but now I have ${charA.name}.（かつては一人で勉強していたけれど、今は${charA.name}さんがいる）。ふたりで学ぶと楽しいですね！」` : "「お帰りなさい！今日は『used to 〜（かつて〜したものだ）』です。一緒に勉強できて嬉しいです」")
+    "「ソレント、お帰り。今日は『Wie geht es Ihnen?（ヴィー・ゲート・エス・イーネン / ご機嫌いかが？）』を学ぼう。Wie geht es dir, Sorrento?（調子はどうだい、ソレント？）。君が私のそばにいてくれるだけで、私の心はいつでも穏やかだよ。……ふふ、そんなに赤くならなくてもいいのに」",
+    "「いつも旅に同行して私を守ってくれてありがとう、ソレント。今日は『Freund（フロイント / 友人・大切な人）』という単語だ。Du bist mein treuer Freund.（君は私の忠実なパートナーだ）。主従であり、旅の仲間である君を、私は心から信頼しているよ」",
+    "「ソレント、君のフルートの音はいつも素晴らしいね。今日は『wunderschön（ヴンダーシェーン / とても美しい）』だ。Deine Musik ist wunderschön.（君の奏でる音楽は本当に美しい）。……ふふ、また耳まで真っ赤になっているよ」",
+    "「お疲れ様。今日は『Tee（テー / お茶）』を覚えよう。Trinken wir eine Tasse Tee.（一杯の紅茶を飲もう）。君が淹れてくれる紅茶を飲みながら過ごす時間が、私にとって何よりの休息なんだ」",
+    "「今日は『Sonne（ゾネ / 太陽）』だ。Sorrento ist meine Sonne.（ソレントは私の太陽だ）。君の誠実な輝きが、かつて荒れ狂った私の心を優しく照らしてくれたのだからね」",
+    "「今日は『Meer（メーア / 海）』を紹介するよ。Das Meer ist heute ruhig.（今日の海は穏やかだね）。かつては支配しようとした海だが、こうして君と静かに眺める海は、本当に美しいと思わないかい？」",
+    "「お帰り、ソレント。今日は『Musik（ムジーク / 音楽）』だ。Ich liebe deine Musik.（私は君の音楽を愛している）。君の奏でる音色が、旅で疲れた人々の心に安らぎを与えているよ。素晴らしいことだね」",
+    "「お帰りなさい、ソレント。今日は『Reise（ライゼ / 旅）』ですね。Unsere Reise geht weiter.（私たちの旅はまだ続く）。世界中を巡り、苦しむ人々を救うこの長い旅路を、これからもずっと君と共に歩みたい」"
   ];
 
   const dialoguesDefault = [
-    "「お帰り。今日は『in spite of 〜（〜にもかかわらず）』を覚えよう。In spite of the busy day, let's read some English!（忙しい一日だったけれど、英語を読もう！）」",
-    "「お疲れ様。今日は『not only A but also B（AだけでなくBも）』だ。Learning English is not only useful but also fun!（英語学習は役に立つだけでなく、楽しいよ！）」",
-    "「お帰りなさい。今日は『prevent A from 〜ing（Aが〜するのを妨げる）』をおさらいします。Nothing can prevent you from learning.（何ものもあなたの学びを妨げられません！）」",
-    "「お疲れ様です。今日は『be worth 〜ing（〜する価値がある）』です。Every small effort is worth trying!（すべての小さな努力は、試す価値があります！）」"
+    "「お帰り。今日は『Guten Tag（こんにちは）』を覚えよう。Lernen wir Deutsch!（ドイツ語を学ぼう！）」",
+    "「お疲れ様。今日は『Danke（ありがとう）』だ。Lernen macht Spaß!（学ぶことは楽しいよ！）」",
+    "「お帰りなさい。今日は『Bitte（お願いします）』をおさらいします。Viel Erfolg!（成功を祈ります！）」",
+    "「お疲れ様です。今日は『Auf Wiedersehen（さようなら）』です。Bis bald!（またね！）」"
   ];
 
   const pickCharA = Math.random() > 0.5;
@@ -1868,17 +1776,13 @@ function renderWelcomeDialog() {
 
   if (avatarEl && nameEl && textEl) {
     avatarEl.innerText = activeChar.name.charAt(0).toUpperCase();
-    avatarEl.style.borderColor = pickCharA ? "var(--accent)" : "var(--gold)";
-    avatarEl.style.color = pickCharA ? "var(--accent)" : "var(--gold)";
+    avatarEl.style.background = pickCharA 
+      ? "linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)" 
+      : "linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)";
+    avatarEl.style.color = "#ffffff";
+    avatarEl.style.border = "none";
     
-    let roleTitle = "さん";
-    if (activeChar.description.includes("部長")) roleTitle = "部長";
-    else if (activeChar.description.includes("係長")) roleTitle = "係長";
-    else if (activeChar.description.includes("司書")) roleTitle = "司書";
-    else if (activeChar.description.includes("部下")) roleTitle = "部下";
-    else if (activeChar.description.includes("学生") || activeChar.description.includes("大学")) roleTitle = "さん";
-
-    nameEl.innerText = `${activeChar.name} ${roleTitle}`;
+    nameEl.innerText = activeChar.name;
     textEl.innerText = message;
   }
 }

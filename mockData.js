@@ -1,312 +1,87 @@
 const DEFAULT_CHARACTERS = [
   {
     id: "char-1",
-    name: "Alex",
-    role: "cheerful",
-    description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。",
-    color: "#f59e0b", // Amber
-    speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。"
+    name: "Sorrento",
+    role: "seme",
+    description: "海魔女（セイレーン）のソレント。ジュリアン・ソロの従者であり守護者。非常にシャイで照れ屋であり、自分から強引にリードすることはないが、心からジュリアン様を護ろうとする誠実な年下攻め。",
+    color: "#8b8ec7", // Wisteria
+    speechStyle: "基本は丁寧で実直な敬語口調。ジュリアン様に対して誠実かつ献身的に接するが、からかわれたり距離が近くなるとすぐに赤くなって照れてしまうシャイなトーン。"
   },
   {
     id: "char-2",
-    name: "Kurt",
-    role: "cool",
-    description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。",
-    color: "#0d9488", // Teal
-    speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。"
+    name: "Julian",
+    role: "uke",
+    description: "ジュリアン・ソロ。ソロ家を率いる若き貴公子。社交界に堪能で優雅で気品があり、恋愛や色ごとにも慣れている。シャイなソレントをからかったり翻弄したりする上品で余裕のある美しい年上受け。",
+    color: "#70aabf", // Calm Blue
+    speechStyle: "気品に溢れた優雅な言葉遣い。ソレントを信頼し、彼の照れる反応を優しく楽しむ大人びた余裕のあるトーン。"
   }
 ];
 
 const PRESET_STORIES = [
   {
     id: "preset-1",
-    title: "Late Night Coffee (深夜の温かいコーヒー)",
+    title: "Ein ruhiger Nachmittag (穏やかな午後)",
     type: "story",
     level: "pre2",
-    characters: ["Alex", "Kurt"],
+    characters: ["Sorrento", "Julian"],
     characterProfiles: [
-      { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-      { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" }
+      { 
+        name: "Sorrento", 
+        description: "海魔女（セイレーン）のソレント。ジュリアン・ソロの従者であり守護者。非常にシャイで照れ屋であり、自分から強引にリードすることはないが、心からジュリアン様を護ろうとする誠実な年下攻め。", 
+        speechStyle: "基本は丁寧で実直な敬語口調。ジュリアン様に対して誠実かつ献身的に接するが、からかわれたり距離が近くなるとすぐに赤くなって照れてしまうシャイなトーン。" 
+      },
+      { 
+        name: "Julian", 
+        description: "ジュリアン・ソロ。ソロ家を率いる若き貴公子。社交界に堪能で優雅で気品があり、恋愛や色ごとにも慣れている。シャイなソレントをからかったり翻弄したりする上品で余裕のある美しい年上受け。", 
+        speechStyle: "気品に溢れた優雅な言葉遣い。ソレントを信頼し、彼の照れる反応を優しく楽しむ大人びた余裕のあるトーン。" 
+      }
     ],
-    situation: "Working late at the office together",
-    wpm: 110,
-    wordCount: 171,
-    english: "The office was quiet after nine o'clock. Alex noticed that Kurt, the department director, was still rubbing his eyes at his desk. Kurt looked exhausted, but he continued working on the screen. Alex walked to the breakroom and prepared two cups of warm coffee. He placed a cup on Kurt's desk with a gentle smile.\n\"You should take a short break, Director. You look exhausted,\" Alex said softly.\nKurt was surprised and looked up. \"I'm fine, Alex. I just need to finish this report before tomorrow.\"\n\"No, I hesitated to interrupt you, but you need rest,\" Alex insisted, leaning closer. \"I prepared this for us.\"\nKurt smiled, his cheeks slightly warm. \"You are always so generous, Alex. Thank you.\"\n\"I appreciate your hard work, Kurt,\" Alex whispered, using his first name for a moment.\nAlthough Kurt pretended to focus on his document, he secretly watched Alex drink the coffee. In the silent room, Kurt felt Alex's passionate eyes and warm kindness melted his stress.",
-    japanese: "夜9時を過ぎると、オフィスは静まり返っていました。アレックスは、営業部長のカートがデスクでまだ目をこすっていることに気づきました。カートは疲れ切っているように見えましたが、画面に向かって仕事を続けていました。アレックスは休憩室へ歩いていき、温かいコーヒーを2杯用意しました。彼は優しい笑みを浮かべ、カートのデスクにカップを置きました。\n「少し休憩を取るべきですよ、部長。お疲れのように見えます」とアレックスは静かに言いました。\nカートは驚いて顔を上げました。「大丈夫だ、アレックス。明日までにこのレポートを終わらせるだけでいいんだ」\n「いいえ、お仕事の邪魔をするのをためらいましたが、休息が必要です」アレックスは身を乗り出して主張しました。「二人のために用意したんです」\nカートは微笑み、頬を少し上気させました。「お前はいつも本当に優しいな、アレックス。ありがとう」\n「部長の頑張りに、いつも感謝していますよ、カートさん」アレックスは一瞬だけファーストネームで呼び、囁きました。\nカートは書類に集中するふりをしていましたが、アレックスがコーヒーを飲むのを密かに見守っていました。静まり返った部屋の中で、カートはアレックスの情熱的な視線と温かい優しさが、自分のストレスを溶かしていくのを感じていました。",
+    situation: "Resting at a cozy cafe during their travels",
+    wpm: 90,
+    wordCount: 84,
+    english: "Der Nachmittag war sehr warm. Sorrento und Julian saßen in einem kleinen Cafe an der Straße. Julian trank eine Tasse Kaffee. Sorrento spielte eine leise Melodie auf seiner Flöte.\n\"Deine Musik ist wunderschön, Sorrento\", sagte Julian mit einem Lächeln.\nSorrento wurde rot und sah nach unten. \"Danke, Julian. Ich spiele nur für dich.\"\nJulian lachte leise. Er sah Sorrento in die Augen. \"Ich bin glücklich, dass du bei mir bist.\"\nIn diesem ruhigen Moment fühlte Sorrento eine große Wärme in seinem Herzen. Er versprach, Julian für immer zu schützen.",
+    japanese: "午後はとてもあたたかでした。SorrentoとJulianは通りの小さなカフェに座っていました。Julianは一杯のコーヒーを飲んでいました。Sorrentoはフルートで静かなメロディを奏でていました。\n「君の音楽は本当に美しいね、Sorrento」Julianは微笑みながら言いました。\nSorrentoは赤くなってうつむきました。「ありがとうございます、Julian。私はただ、あなたのために奏でているのです」\nJulianは静かに笑いました。彼はSorrentoの目を見つめました。「君がそばにいてくれて嬉しいよ」\nこの穏やかな瞬間、Sorrentoは胸の中に大きな温もりを感じていました。彼はJulianを永遠に守ることを誓いました。",
     words: [
-      { word: "exhausted", pos: "adjective", meaning: "疲れ切った、消耗した", level: "準2級", importance: 4, context: "Kurt looked exhausted, but he continued working on the screen." },
-      { word: "hesitated", pos: "verb", meaning: "ためらった、躊躇した", level: "準2級", importance: 4, context: "No, I hesitated to interrupt you, but you need rest." },
-      { word: "generous", pos: "adjective", meaning: "寛大な、思いやりのある、気前の良い", level: "準2級", importance: 3, context: "You are always so generous, Alex. Thank you." },
-      { word: "appreciate", pos: "verb", meaning: "感謝する、正しく評価する", level: "準2級", importance: 5, context: "I appreciate your hard work, Kurt." },
-      { word: "pretended", pos: "verb", meaning: "〜のふりをした", level: "準2級", importance: 4, context: "Although Kurt pretended to focus on his document, he secretly..." }
+      { word: "wunderschön", pos: "Adjektiv (形容詞)", meaning: "とても美しい", level: "A1", importance: 5, context: "Deine Musik ist wunderschön, Sorrento." },
+      { word: "das Lächeln", pos: "Substantiv (名詞)", meaning: "微笑み", level: "A1", importance: 4, context: "Julian sagte mit einem Lächeln." },
+      { word: "glücklich", pos: "Adjektiv (形容詞)", meaning: "幸せな、嬉しい", level: "A1", importance: 4, context: "Ich bin glücklich, dass du bei mir bist." },
+      { word: "schützen", pos: "Verb (動詞)", meaning: "守る、保護する", level: "A1", importance: 5, context: "Er versprach, Julian für immer zu schützen." },
+      { word: "ruhig", pos: "Adjektiv (形容詞)", meaning: "静かな、穏やかな", level: "A1", importance: 3, context: "In diesem ruhigen Moment fühlte Sorrento eine große Wärme..." }
     ],
     grammarExplanations: [
       {
-        sentence: "Alex noticed that Kurt, the department director, was still rubbing his eyes.",
-        structure: "Alex [S] + noticed [V] + that [接続詞] + Kurt, the department director [S'] + was still rubbing [V'] + his eyes [O'].",
-        explanation: "接続詞 that が名詞節（〜ということ）を作り、noticed の目的語になっています。Kurt と the department director は同格の関係です。"
+        sentence: "Deine Musik ist wunderschön.",
+        structure: "Deine Musik [S] + ist [V] + wunderschön [C].",
+        explanation: "Deine は所有代名詞の二人称単数形（君の）で、ist は sein の三人称単数現在形、wunderschön は形容詞（とても美しい）です。"
       },
       {
-        sentence: "Although Kurt pretended to focus on his document, he secretly watched Alex drink the coffee.",
-        structure: "Although [接続詞] + Kurt [S'] + pretended [V'] + to focus on his document [O'], he [S] + secretly [M] + watched [V] + Alex [O] + drink [C: 原形不定詞] + the coffee [O'].",
-        explanation: "Although（〜だけれども）の接続詞が譲歩を表し、主節には watch + O + 原形不定詞（Oが〜するのを見つめる）という知覚動詞の構文が使われています。"
+        sentence: "Ich bin glücklich, dass du bei mir bist.",
+        structure: "Ich [S] + bin [V] + glücklich [C], + dass [接続詞] + du [S'] + bei mir [前置詞句] + bist [V'].",
+        explanation: "接続詞 dass（〜ということ）に導かれる従属節（副文）では、定動詞（bist）が文の最後に置かれます。"
       }
     ],
     questions: [
       {
-        question: "Why did Alex bring coffee to Kurt?",
+        question: "Was trank Julian im Cafe?",
         choices: [
-          "Because Kurt ordered him to make some.",
-          "Because Kurt looked exhausted working late.",
-          "Because Alex wanted to leave the office early.",
-          "Because they had to test a new coffee machine."
-        ],
-        answerIndex: 1,
-        explanation: "本文第3文「Kurt looked exhausted... Alex walked to the breakroom and prepared two cups of warm coffee.」から、カートが疲れて見えたためにコーヒーを持ってきたので2番目が正解です。"
-      },
-      {
-        question: "How did Kurt feel when Alex called him 'Kurt'?",
-        choices: [
-          "He got angry and scolded Alex immediately.",
-          "He fell asleep and ignored Alex's words.",
-          "He smiled and felt his cheeks get slightly warm.",
-          "He decided to cancel tomorrow's presentation."
-        ],
-        answerIndex: 2,
-        explanation: "アレックスが「Kurt」と名前で呼んだ際、カートは「Kurt smiled, his cheeks slightly warm.」とあるため、微笑み頬を赤らめた3番目が正解です。"
-      }
-    ]
-  },
-  {
-    id: "preset-2",
-    title: "Rainy Ride Home (雨の夜のタクシー相乗り)",
-    type: "story",
-    level: "grade2",
-    characters: ["Alex", "Kurt"],
-    characterProfiles: [
-      { name: "Alex", description: "34歳の営業係長。優秀で仕事ができるが、上司のKurtに対して並々ならぬ執着を抱き、時に甘え、時に強引に迫る年下攻め。", speechStyle: "基本は丁寧な部下口調だが、二人きりになると熱情が漏れる大人のトーン。相手を「部長」と呼ぶ。" },
-      { name: "Kurt", description: "48歳の営業部長。威厳があって部下思いだが、優秀な年下部下Alexの好意や独占欲に翻弄され、普段のクールさを崩してしまう可愛い年上受け。", speechStyle: "包容力のある大人の口調、Alexの猛アプローチに少しタジタジしつつも受け入れる態度。" }
-    ],
-    situation: "Sharing a taxi in the rain after a business dinner",
-    wpm: 120,
-    wordCount: 179,
-    english: "A heavy rainfall hit the city after a long business dinner. Alex found a taxi on the crowded street and waved to Kurt, who was shivering under his umbrella.\n\"Director, the rain is too strong. Let's share this ride,\" Alex proposed, gently pulling Kurt's arm.\n\"Are you sure? We live in the same direction, but I don't want to trouble you,\" Kurt said, looking slightly flustered.\n\"It is no trouble at all. Sharing is a mutual benefit,\" Alex smiled inside the vehicle.\nInside the quiet car, the isolation from the storm created a cozy atmosphere. Kurt sighed, \"Honestly, I feel anxiety about tomorrow's board presentation.\"\n\"You shouldn't worry,\" Alex replied, looking directly into Kurt's eyes. \"Your dedication to this project is clear to everyone. I will support you.\"\nKurt felt comforted by the younger man's confident words. \"Thank you, Alex. You are very reliable.\"\nWhen the taxi arrived at Alex's apartment, Kurt thanked him. This brief journey had established a deeper understanding between them, transforming their professional relationship.",
-    japanese: "長いビジネス会食の後、激しい豪雨が街を襲いました。アレックスは混雑した通りでタクシーを見つけ、傘の下で身を震わせているカートに向けて手を振りました。\n「部長、雨が強すぎます。相乗りしましょう」アレックスはカートの腕を優しく引っ張りながら提案しました。\n「本当かい？住んでいる方向は同じだが、君に迷惑をかけたくないんだが」カートは少し戸惑った様子で言いました。\n「迷惑だなんてとんでもない。相乗りはお互いのためですよ」アレックスは車内で微笑みました。\n静かな車内、嵐から隔離された空間が心地よい雰囲気を醸し出していました。カートはため息をつき、「正直なところ、明日の役員プレゼンに対して不安があるんだ」と言いました。\n「心配する必要はありませんよ」アレックスはカートの目を真っ直ぐ見つめて答えました。「このプロジェクトに対する部長の献身的な取り組みは、誰もが知っています。僕が支えますから」\nカートは、年下のアレックスの自信に満ちた言葉に慰められました。「ありがとう、アレックス。お前は本当に頼もしいな」\nタクシーがアレックスのマンション前に到着すると、カートはお礼を言いました。この短い移動が二人の間に深い相互理解を築き、仕事上の関係を変化させていました。",
-    words: [
-      { word: "anxiety", pos: "noun", meaning: "不安、心配、切望", level: "2級", importance: 5, context: "Honestly, I feel anxiety about tomorrow's board presentation." },
-      { word: "dedication", pos: "noun", meaning: "献身、熱心さ、貢献", level: "2級", importance: 4, context: "Your dedication to this project is clear to everyone." },
-      { word: "isolation", pos: "noun", meaning: "孤立、隔離した環境", level: "2級", importance: 4, context: "the isolation from the storm created a cozy atmosphere." },
-      { word: "established", pos: "verb", meaning: "確立した、築いた", level: "2級", importance: 5, context: "This brief journey had established a deeper understanding..." },
-      { word: "mutual", pos: "adjective", meaning: "相互の、共通の、お互いの", level: "2級", importance: 5, context: "Sharing is a mutual benefit." }
-    ],
-    grammarExplanations: [
-      {
-        sentence: "Alex found a taxi on the crowded street and waved to Kurt, who was shivering under his umbrella.",
-        structure: "Alex [S] + found [V1] + a taxi [O] ... and + waved [V2] + to Kurt, + who [関係代名詞・非制限用法] + was shivering [V'] + under his umbrella.",
-        explanation: "whoは関係代名詞の非制限用法（コンマ＋who）で、先行詞 Kurt について「（その時）彼は傘の下で震えていた」と補足的に説明を追加しています。"
-      },
-      {
-        sentence: "This brief journey had established a deeper understanding between them, transforming their relationship.",
-        structure: "This brief journey [S] + had established [V: 過去完了形] + a deeper understanding [O] ..., + transforming [分詞構文] + their relationship [O'].",
-        explanation: "transforming は現在分詞を用いた分詞構文で、主節の動作「理解を築いた」の結果として「その結果関係性を変えた」という継続的な結果（〜して、そして…した）を説明しています。"
-      }
-    ],
-    questions: [
-      {
-        question: "Why did Kurt feel flustered when Alex offered a ride?",
-        choices: [
-          "Because he forgot his umbrella at the restaurant.",
-          "Because they lived in completely different directions.",
-          "Because he didn't want to cause trouble to his younger colleague.",
-          "Because the taxi fare was too expensive."
-        ],
-        answerIndex: 2,
-        explanation: "本文第3文「I don't want to trouble you（君に迷惑をかけたくない）」とあるため、年下の部下に迷惑をかけまいと戸惑った3番目が正解です。"
-      },
-      {
-        question: "How did Alex comfort Kurt about his presentation?",
-        choices: [
-          "By offering to do the entire presentation for him.",
-          "By reminding him of his dedication and promising support.",
-          "By suggesting that they cancel the business dinner.",
-          "By telling him that the board members are not important."
-        ],
-        answerIndex: 1,
-        explanation: "アレックスは「Your dedication... is clear. I will support you.（部長の献身は明らかです。私が支えます）」と励ましているため、2番目が正解です。"
-      }
-    ]
-  },
-  {
-    id: "preset-3",
-    title: "The Librarian's Quiet Smile (静かな書庫での出会い)",
-    type: "story",
-    level: "pre2",
-    characters: ["Ray", "Arthur"],
-    characterProfiles: [
-      { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-      { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" }
-    ],
-    situation: "A quiet study at the library",
-    wpm: 105,
-    wordCount: 161,
-    english: "The university library was peaceful on Saturday afternoon. Ray was searching for a history book, carrying a heavy stack of novels. Suddenly, he dropped them with a loud noise. Embarrassed, Ray tried to collect them. Arthur, the chief librarian wearing thin glasses, walked over silently. Ray expected to be scolded, but Arthur knelt down to help.\n\"I am so embarrassed, librarian,\" Ray whispered nervously.\nArthur smiled gently. \"Be careful, young man. You shouldn't rush.\"\n\"I hesitated to look up because I thought you would scold me,\" Ray admitted, his heart beating fast. \"But I wanted to see you.\"\nArthur's cheeks blushed slightly, but he kept his cool smile. \"You are very honest. I praise your sincere passion for reading so many books.\"\n\"Thank you! Your words make me happy,\" Ray smiled brightly.\nIn the quiet sunlight of the library, Ray realized his sincere feelings for Arthur grew stronger every single day.",
-    japanese: "土曜日の午後、大学の図書館は穏やかでした。レイは重い小説の山を抱えながら、歴史の参考書を探していました。突然、彼は大きな音を立ててそれらを落としてしまいました。恥ずかしさのあまり、レイは急いで本を集めようとしました。薄い眼鏡をかけた主任司書のアーサーが、静かに歩み寄ってきました。レイは怒られるのではないかと思いましたが、アーサーは膝をついて手伝ってくれました。\n「本当に恥ずかしいです、司書さん」レイは緊張して囁きました。\nアーサーは優しく微笑みました。「気をつけなさい、若者よ。急いではいけません」\n「怒られると思って、顔を上げるのをためらいました」レイは心臓を高鳴らせながら打ち明けました。「でも、司書さんに会いたかったんです」\nアーサーの頬はわずかに赤らみましたが、冷静な微笑みを崩しませんでした。「君はとても素直ですね。そんなにたくさんの本を読む、君の誠実な情熱を褒めてあげましょう」\n「ありがとうございます！そう言ってもらえて嬉しいです！」レイは明るく微笑みました。\n図書館の静かな木漏れ日の中で、レイはアーサーに対する自分の誠実な気持ちが、日に日に強くなっていることを実感していました。",
-    words: [
-      { word: "embarrassed", pos: "adjective", meaning: "恥ずかしがった、気まずい思いをした", level: "準2級", importance: 4, context: "Embarrassed, Ray tried to collect them." },
-      { word: "hesitated", pos: "verb", meaning: "ためらった、躊躇した", level: "準2級", importance: 4, context: "I hesitated to look up because I thought you would scold me." },
-      { word: "scold", pos: "verb", meaning: "叱る、怒る", level: "準2級", importance: 3, context: "I thought you would scold me." },
-      { word: "sincere", pos: "adjective", meaning: "心からの、誠実な", level: "準2級", importance: 4, context: "I praise your sincere passion for reading so many books." },
-      { word: "praise", pos: "verb", meaning: "褒める", level: "準2級", importance: 4, context: "I praise your sincere passion for reading..." }
-    ],
-    grammarExplanations: [
-      {
-        sentence: "Ray admitted his heart was beating fast, expecting to be scolded.",
-        structure: "Ray [S] + admitted [V] + (that) his heart was beating fast [O], + expecting [分詞構文] + to be scolded [O'].",
-        explanation: "expecting... は分詞構文で、「叱られると予想しながら（告白した）」という同時状況を表します。to be scolded は受動態の不定詞（叱られること）です。"
-      },
-      {
-        sentence: "Arthur praised him for reading so many books.",
-        structure: "Arthur [S] + praised [V] + him [O] + for [前置詞] + reading [動名詞] + so many books [O'].",
-        explanation: "praise A for B（BのことでAを褒める）という重要表現です。前置詞 for の後に動名詞 reading が来ています。"
-      }
-    ],
-    questions: [
-      {
-        question: "Why did Ray hesitate to look up at Arthur?",
-        choices: [
-          "Because he dropped his glasses on the floor.",
-          "Because he thought Arthur would scold him for dropping books.",
-          "Because the sunlight in the library was too bright.",
-          "Because he did not like Arthur's new novels."
-        ],
-        answerIndex: 1,
-        explanation: "本文「I hesitated to look up because I thought you would scold me（叱られると思って顔を上げるのをためらった）」とあるため、2番目が正解です。"
-      },
-      {
-        question: "What did Arthur praise Ray for?",
-        choices: [
-          "For cleaning the history bookshelves.",
-          "For wearing a clean university uniform.",
-          "For his sincere passion for reading books.",
-          "For arriving at the library on time."
-        ],
-        answerIndex: 2,
-        explanation: "アーサーは「I praise your sincere passion for reading so many books（本を読む誠実な情熱を褒めましょう）」と述べているため、3番目が正解です。"
-      }
-    ]
-  },
-  {
-    id: "preset-4",
-    title: "Rainy Evening in the Archives (閉館後の書庫の雨宿り)",
-    type: "story",
-    level: "grade2",
-    characters: ["Ray", "Arthur"],
-    characterProfiles: [
-      { name: "Ray", description: "22歳の元気な大学生。表情豊かで人懐っこいワンコ系だが、ここぞという時は男らしくリードする年下攻め。Arthurに一途。", speechStyle: "明るく元気な敬語口調。「司書さん！」と懐きつつ、時に真っ直ぐ好意を伝える。" },
-      { name: "Arthur", description: "45歳の知的な図書館司書。眼鏡の奥の瞳が妖艶で底知れない雰囲気があるが、年下のRayの一途な情熱にペースを乱される優雅な年上受け。", speechStyle: "物腰柔らかで丁寧、どこかからかうような余裕があるが、Rayに迫られると照れる大人の口調。" }
-    ],
-    situation: "Rainy evening waiting at the library entrance",
-    wpm: 120,
-    wordCount: 172,
-    english: "Outside the library, a sudden storm was raging. Ray finished his graduation paper after closing time. When he reached the lobby, he saw Arthur organizing documents. Ray had no umbrella.\n\"The storm is raging, Ray. You cannot walk home,\" Arthur said. \"Why don't we wait in the private archive room?\"\n\"Is that okay? Just the two of us?\" Ray asked, his voice filled with tension.\nArthur smiled with a sophisticated charm. \"Of course. Follow me.\"\nIn the historic room, Arthur prepared hot tea. Ray felt a nervous tension, but he was deeply comfortable.\n\"I feel anxiety about the future after graduation,\" Ray confessed.\nArthur listened patiently and said, \"You have a great talent, Ray. Believe in yourself.\"\n\"I believe in you, Arthur,\" Ray said, leaning closer. \"This unexpected isolation feels like a magical dream.\"\nArthur looked surprised, his elegant composure breaking slightly. \"You are bold, Ray.\"\nRay smiled, realizing his admiration had turned into deep love.",
-    japanese: "図書館の外では、突然の激しい嵐が吹き荒れていました。レイは閉館時間になってようやく卒業論文を書き終えました。ロビーに下りると、アーサーが古い資料を整理しているのが見えました。レイは傘を持っていませんでした。\n「嵐が吹き荒れていますよ、レイ。歩いては帰れませんね」アーサーは言いました。「私の個人書庫で雨宿りをしませんか？」\n「いいんですか？二人きりで？」レイは少し緊張した声で尋ねました。\nアーサーは洗練された魅力的な微笑みを浮かべました。「もちろん。付いてきなさい」\n歴史を感じさせるその部屋で、アーサーは温かい紅茶を淹れてくれました。レイは奇妙な緊張を感じつつも、深く安らいでいました。\n「卒業後の将来について、不安を感じているんです」レイは告白しました。\nアーサーは辛抱強く耳を傾け、「君には素晴らしい才能がありますよ、レイ。自分を信じなさい」と言いました。\n「僕は司書さんを信じています」レイは身を乗り出し、アーサーに近づきました。「この予想外の二人きりの空間は、まるで魔法の夢のようです」\nアーサーは少し驚き、その優雅な落ち着きをわずかに崩しました。「大胆な子ですね、レイ」\nレイは微笑みました。アーサーへの純粋な憧れが、すでに深い愛へと変わっていることに気づいたのです。",
-    words: [
-      { word: "raging", pos: "verb/adjective", meaning: "吹き荒れている、激怒している", level: "2級", importance: 3, context: "Outside the library, a sudden storm was raging." },
-      { word: "anxiety", pos: "noun", meaning: "不安、心配", level: "2級", importance: 5, context: "I feel anxiety about the future after graduation." },
-      { word: "tension", pos: "noun", meaning: "緊張、張りつめた空気", level: "2級", importance: 5, context: "Ray asked, his voice filled with tension." },
-      { word: "sophisticated", pos: "adjective", meaning: "洗練された、知的な、精巧な", level: "2級", importance: 4, context: "Arthur smiled with a sophisticated charm." },
-      { word: "isolation", pos: "noun", meaning: "孤立、隔離された状況", level: "2級", importance: 4, context: "This unexpected isolation feels like a magical dream." }
-    ],
-    grammarExplanations: [
-      {
-        sentence: "When he reached the lobby, he saw Arthur organizing documents.",
-        structure: "When [接続詞] + he [S'] + reached [V'] + the lobby [O'], he [S] + saw [V: 知覚動詞] + Arthur [O] + organizing [C: 現在分詞] + documents [O'].",
-        explanation: "see + O + doing（Oが〜しているのを見る）という知覚動詞の構文が使われています。現在分詞 organizing が使われることで、進行中の動作を強調しています。"
-      },
-      {
-        sentence: "Ray smiled, realizing his admiration had turned into deep love.",
-        structure: "Ray [S] + smiled [V], + realizing [分詞構文] + (that) [省略された接続詞] + his admiration [S'] + had turned [V': 過去完了] + into deep love.",
-        explanation: "realizing... は分詞構文で、主節の動作「微笑んだ」とほぼ同時の心理「〜を実感しながら」を表します。admirationの後に接続詞 that が省略されています。"
-      }
-    ],
-    questions: [
-      {
-        question: "Why did Arthur invite Ray to the private archive room?",
-        choices: [
-          "Because they had to clean the library together.",
-          "Because a heavy storm was raging and Ray had no umbrella.",
-          "Because Ray wanted to buy some expensive ancient books.",
-          "Because Arthur needed help with his homework."
-        ],
-        answerIndex: 1,
-        explanation: "本文「The storm is raging, Ray. You cannot walk home. Why don't we wait...」とあるため、嵐で帰れないレイを気遣って書庫に誘った2番目が正解です。"
-      },
-      {
-        question: "How did Arthur react when Ray said the isolation felt like a dream?",
-        choices: [
-          "He became extremely angry and asked Ray to leave.",
-          "He laughed out loud and ignored Ray's confession.",
-          "He looked surprised, and his composure broke slightly.",
-          "He fell asleep immediately in his chair."
-        ],
-        answerIndex: 2,
-        explanation: "レイが「魔法の夢のようだ」と近づいたとき、アーサーは「Arthur looked surprised, his elegant composure breaking slightly（少し驚き、落ち着きをわずかに崩した）」とあるため、3番目が正解です。"
-      }
-    ]
-  },
-  {
-    id: "preset-5",
-    title: "ワークプレイスにおける大人関係性の心理 (Workplace Dynamics)",
-    type: "essay",
-    level: "grade2",
-    characters: [],
-    characterProfiles: [],
-    situation: "Trope Analysis",
-    wpm: 125,
-    wordCount: 162,
-    english: "In modern literature and fan culture, relationships between mature working adults, especially with a age gap, attract significant interest. The dynamic between a younger passionate colleague and an older manager starts with a professional gap. However, as they cooperate under work pressure, the younger colleague's reliability helps the older colleague discover his own vulnerabilities. Psychologically, this transition is powerful because it creates dramatic tension. The contrast between professional distance and emotional closeness makes their interaction highly satisfying. Unlike youthful romance, these stories require deep communication to overcome prejudices and build mutual trust. For language learners, reading about workplace dynamics is useful because it teaches vocabulary related to professional settings, conflict resolution, and personal growth. Understanding these mature feelings helps readers acquire practical English expressions naturally. This combination of realistic office scenarios and emotional depth makes adult-centered stories a highly effective tool for studying advanced English vocabulary.",
-    japanese: "現代の文学やファン文化において、成熟した社会人、特に年齢差のある関係性は大きな関心を集めています。情熱的な年下の同僚と年上の上司との間のダイナミクスは、仕事上の格差から始まります。しかし、仕事のプレッシャーの下で協力するうちに、年下の同僚の頼もしさが、年上の上司に自分自身の弱み（脆弱性）を発見させます。心理学的に、この変化はドラマチックな緊張感を生み出すため非常に強力です。仕事上の距離感と感情的な近さのコントラストが、彼らの対話を非常に満足度の高いものにします。若々しい恋愛とは異なり、これらの物語は偏見を克服し、相互の信頼を築くために深いコミュニケーションを必要とします。語学学習者にとって、職場のダイナミクスについて読むことは、プロフェッショナルな設定、葛藤の解決、個人の成長に関連する語彙を学べるため非常に有益です。これらの成熟した感情を理解することは、実用的な英語表現を自然に習得するのに役立ちます。現実的なオフィスのシナリオと感情的な深さの組み合わせにより、大人中心のストーリーは高度な英語語彙を学習するための非常に効果的なツールになります。",
-    words: [
-      { word: "vulnerabilities", pos: "noun", meaning: "脆弱性、弱み、傷つきやすさ", level: "2級", importance: 4, context: "helps the older colleague discover his own vulnerabilities." },
-      { word: "tension", pos: "noun", meaning: "緊張、緊迫感", level: "2級", importance: 5, context: "it creates dramatic tension." },
-      { word: "prejudices", pos: "noun", meaning: "偏見、先入観", level: "2級", importance: 4, context: "overcome prejudices and build mutual trust." },
-      { word: "acquire", pos: "verb", meaning: "習得する、獲得する", level: "2級", importance: 5, context: "helps readers acquire practical English expressions naturally." },
-      { word: "scenarios", pos: "noun", meaning: "シナリオ、状況、想定される展開", level: "2級", importance: 3, context: "This combination of realistic office scenarios..." }
-    ],
-    grammarExplanations: [
-      {
-        sentence: "The contrast between professional distance and emotional closeness makes their interaction highly satisfying.",
-        structure: "The contrast [S] + between professional distance and emotional closeness [修飾句] + makes [V] + their interaction [O] + highly satisfying [C: 形容詞/分詞].",
-        explanation: "make + O + C（OをCの状態にする）という第5文型（使役的意味）の構文です。closeness は「親密さ」、satisfying は「満足のいく、心地よい」という意味です。"
-      },
-      {
-        sentence: "Understanding these mature feelings helps readers acquire practical English expressions naturally.",
-        structure: "Understanding these mature feelings [S: 動名詞句] + helps [V] + readers [O] + acquire [C: 原形不定詞] + practical English expressions [O'].",
-        explanation: "help + O + 原形不定詞（Oが〜するのを助ける、役立つ）の構文です。helps の後に to acquire ではなく原形不定詞の acquire が直接来ています。"
-      }
-    ],
-    questions: [
-      {
-        question: "According to the essay, why are adult workplace stories appealing?",
-        choices: [
-          "Because they have no grammatical errors.",
-          "Because they create dramatic tension from the contrast of professional distance and emotional closeness.",
-          "Because they only focus on sports and high school events.",
-          "Because they do not require deep communication."
-        ],
-        answerIndex: 1,
-        explanation: "本文中盤に「The contrast between professional distance and emotional closeness makes their interaction highly satisfying.」とあるため、2番目が正解です。"
-      },
-      {
-        question: "What is a benefit of reading about workplace dynamics for language learners?",
-        choices: [
-          "It teaches vocabulary related to professional settings and personal growth.",
-          "It helps them learn how to write programming codes.",
-          "It allows them to skip Eiken exams.",
-          "It explains how to buy expensive books."
+          "Eine Tasse Kaffee (コーヒー)",
+          "Eine Tasse Tee (紅茶)",
+          "Ein Glas Wasser (お水)",
+          "Ein Glas Wein (ワイン)"
         ],
         answerIndex: 0,
-        explanation: "本文後半に「useful because it teaches vocabulary related to professional settings, conflict resolution, and personal growth」とあるため、1番目が正解です。"
+        explanation: "本文に「Julian trank eine Tasse Kaffee.」と書かれているため、コーヒーである1番目の選択肢が正解です。"
+      },
+      {
+        question: "Wie reagierte Sorrento, als Julian ihn lobte?",
+        choices: [
+          "Er wurde wütend. (怒った)",
+          "Er wurde rot. (赤くなって照れた)",
+          "Er lief weg. (走り去った)",
+          "Er fing an zu weinen. (泣き出した)"
+        ],
+        answerIndex: 1,
+        explanation: "本文に「Sorrento wurde rot und sah nach unten.」とあるため、顔を赤くして照れた2番目の選択肢が正解です。"
       }
     ]
   }

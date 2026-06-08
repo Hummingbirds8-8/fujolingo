@@ -1,23 +1,23 @@
 :root {
-  --bg:            #f4f8f7; /* Soft paper-like light teal-white */
+  --bg:            #f5f6fa; /* Soft wisteria/blue-gray background */
   --bg-elevated:   #ffffff; /* Clean white card surfaces */
-  --bg-subtle:     #e7f2f1; /* Mild teal tint for inputs / panels */
-  --surface:       rgba(13, 148, 136, 0.05);
-  --surface-hover: rgba(13, 148, 136, 0.1);
-  --border:        #d1e5e3; /* Soft light teal border */
-  --border-strong: #0d9488; /* Primary teal accent line */
-  --accent:        #0d9488; /* Main Teal Accent */
-  --accent-light:  #14b8a6; /* Vibrant Teal Accent */
-  --accent-bg:     rgba(13, 148, 136, 0.08);
+  --bg-subtle:     #eaecef; /* Mild wisteria-gray tint for inputs / panels */
+  --surface:       rgba(139, 142, 199, 0.05);
+  --surface-hover: rgba(139, 142, 199, 0.1);
+  --border:        #dee0f0; /* Soft light wisteria border */
+  --border-strong: #8b8ec7; /* Primary wisteria accent line */
+  --accent:        #8b8ec7; /* Wisteria Accent */
+  --accent-light:  #a7a8d8; /* Light Wisteria Accent */
+  --accent-bg:     rgba(139, 142, 199, 0.08);
   
-  --gold:          #c27803; /* Warm gold/amber accent for light mode */
-  --gold-dark:     #9f5f02;
-  --gold-bg:       rgba(194, 120, 3, 0.08);
+  --gold:          #70aabf; /* Calm Light Blue Accent */
+  --gold-dark:     #528c9f;
+  --gold-bg:       rgba(112, 170, 191, 0.08);
   
-  --text-primary:  #112927; /* Rich dark teal-black for high legibility */
-  --text-muted:    #3c6a66; /* Mild teal-gray for descriptions */
-  --text-dark:     #112927;
-  --text-dimmed:   rgba(17, 41, 39, 0.55);
+  --text-primary:  #202336; /* Dark slate blue for high legibility */
+  --text-muted:    #505570; /* Muted slate gray for descriptions */
+  --text-dark:     #202336;
+  --text-dimmed:   rgba(32, 35, 54, 0.55);
 
   --success:       #059669;
   --success-bg:    rgba(5, 150, 105, 0.08);
@@ -28,7 +28,7 @@
   --radius-sm:     8px;
   --radius-pill:   9999px;
   --t:             0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --shadow:        0 8px 30px rgba(13, 148, 136, 0.08);
+  --shadow:        0 8px 30px rgba(139, 142, 199, 0.08);
   --font-serif:    'Georgia', 'Noto Serif JP', serif;
   --font-sans:     'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -122,7 +122,7 @@ h1.logo-text {
 }
 
 .nav-tab.active {
-  background: linear-gradient(135deg, #dbf2f0 0%, #fdf3d7 100%);
+  background: linear-gradient(135deg, rgba(167, 168, 216, 0.25) 0%, rgba(112, 170, 191, 0.25) 100%);
   color: var(--text-primary);
   border: 1px solid var(--border-strong);
 }
@@ -182,7 +182,7 @@ h1.logo-text {
 
 #home-welcome-panel:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.08);
+  box-shadow: 0 4px 16px rgba(139, 142, 199, 0.08);
 }
 
 #home-welcome-panel:active {
@@ -223,9 +223,9 @@ input[type="text"]:focus, textarea:focus, select:focus {
 
 .btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, #dbf2f0 0%, #fdf3d7 100%);
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+  color: #ffffff;
+  border: none;
   font-size: 15px;
   font-weight: 800;
   padding: 14px 20px;
@@ -238,9 +238,9 @@ input[type="text"]:focus, textarea:focus, select:focus {
   gap: 8px;
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #cdeee9 0%, #fbedc5 100%);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--gold) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+  box-shadow: 0 4px 12px rgba(139, 142, 199, 0.15);
 }
 
 
@@ -317,7 +317,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
 .preset-card-today {
   background: var(--bg-elevated);
   border: 2px solid transparent;
-  background-image: linear-gradient(var(--bg-elevated), var(--bg-elevated)), linear-gradient(135deg, var(--accent-light) 0%, #f5d0a9 100%);
+  background-image: linear-gradient(var(--bg-elevated), var(--bg-elevated)), linear-gradient(135deg, var(--accent-light) 0%, var(--gold) 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   border-radius: var(--radius);
@@ -332,7 +332,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
 
 .preset-card-today:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(13, 148, 136, 0.15);
+  box-shadow: 0 12px 36px rgba(139, 142, 199, 0.15);
 }
 
 .preset-badge {
@@ -344,14 +344,14 @@ input[type="text"]:focus, textarea:focus, select:focus {
 }
 
 .badge-story { 
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(194, 120, 3, 0.05) 100%); 
+  background: linear-gradient(135deg, rgba(139, 142, 199, 0.12) 0%, rgba(112, 170, 191, 0.05) 100%); 
   color: var(--accent); 
-  border: 1px solid rgba(13, 148, 136, 0.20);
+  border: 1px solid rgba(139, 142, 199, 0.20);
 }
 .badge-essay { 
-  background: linear-gradient(135deg, rgba(194, 120, 3, 0.12) 0%, rgba(13, 148, 136, 0.05) 100%); 
+  background: linear-gradient(135deg, rgba(112, 170, 191, 0.12) 0%, rgba(139, 142, 199, 0.05) 100%); 
   color: var(--gold); 
-  border: 1px solid rgba(194, 120, 3, 0.20);
+  border: 1px solid rgba(112, 170, 191, 0.20);
 }
 
 .preset-info h4 {
@@ -468,7 +468,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
 /* Word Tap Mechanism */
 .word-tap {
   cursor: pointer;
-  border-bottom: 1px dashed rgba(45, 212, 191, 0.4);
+  border-bottom: 1px dashed rgba(167, 168, 216, 0.5);
   padding: 0 1px;
   transition: all var(--t);
 }

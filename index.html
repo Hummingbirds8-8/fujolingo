@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fujolingo — 自分だけの「推し」で学ぶ英語リーディング</title>
+  <title>FujoLingo: Deutsch — 推しで学ぶドイツ語リーディング</title>
   <link rel="stylesheet" href="style.css?v=2">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
     <header>
       <div class="logo-group">
         <span class="logo-icon">🍏</span>
-        <h1 class="logo-text">Fujolingo</h1>
+        <h1 class="logo-text">FujoLingo: Deutsch</h1>
       </div>
     </header>
 
@@ -26,8 +26,8 @@
       <button class="nav-tab active" id="tab-home" data-view="view-home">🏠 ホーム</button>
       <button class="nav-tab" id="tab-reader" data-view="view-reader">📖 リーダー</button>
       <button class="nav-tab" id="tab-generator" data-view="view-generator">📖 本棚</button>
-      <button class="nav-tab" id="tab-char-maker" data-view="view-char-maker">⚙️ 設定</button>
       <button class="nav-tab" id="tab-vocab" data-view="view-vocab">🃏 復習(<span id="vocab-badge-count">0</span>)</button>
+      <button class="nav-tab" id="tab-char-maker" data-view="view-char-maker">⚙️ 設定</button>
     </nav>
 
     <!-- VIEW 0: HOME / DASHBOARD -->
@@ -36,15 +36,15 @@
       <!-- Welcome card (Character Dialog) -->
       <div class="panel" style="background: linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-elevated) 100%); position: relative; cursor: pointer; transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;" id="home-welcome-panel" title="クリックすると別のアドバイスを聞けます">
         <div style="display: flex; align-items: flex-start; gap: 14px;">
-          <div id="home-welcome-avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: var(--accent-bg); color: var(--accent); border: 2px solid var(--border); flex-shrink: 0; font-weight: bold;">
-            K
+          <div id="home-welcome-avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: #ffffff; border: none; flex-shrink: 0; font-weight: bold;">
+            S
           </div>
           <div style="flex: 1;">
             <div id="home-welcome-name" style="font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
-              Kenji 部長
+              Sorrento
             </div>
             <div id="home-welcome-text" style="font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.6; font-style: italic; margin-bottom: 4px;">
-              「お帰り。今日も頑張っているな。あまり根を詰めすぎるなよ。適度な休憩が一番能率を上げるコツだ」
+              「ジュリアン様、お疲れ様です。……お茶でもいかがですか？」
             </div>
             <div style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 4px; opacity: 0.8; user-select: none;">
               💡 クリックして他の一言を聞く
@@ -64,7 +64,7 @@
               1日連続学習中！
             </div>
             <div style="font-size: 11px; color: var(--text-muted);">
-              毎日英文を読むことで習慣化し、英語脳を定着させます。
+              毎日ドイツ語を読むことで習慣化し、ドイツ語脳を定着させます。
             </div>
           </div>
         </div>
@@ -85,12 +85,16 @@
         </div>
       </div>
 
-      <!-- Quick Generate by Coupling (今日の二人) -->
+      <!-- Bookshelf Guide Panel -->
       <div class="panel">
-        <h3 class="section-title">📚 今日の二人</h3>
-        <div id="home-quick-couplings-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 6px;">
-          <!-- Dynamically filled with coupling cards by app.js -->
-        </div>
+        <h3 class="section-title">📚 ドイツ語学習を始める</h3>
+        <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px;">
+          「本棚」タブでは、ソレントとジュリアン様の旅路を描いたドイツ語ショートストーリーやエッセイを、お好みのシチュエーションで生成して学習することができます。
+        </p>
+        <button class="btn-primary" id="btn-home-go-bookshelf" style="font-size: 13.5px; padding: 10px 16px;">
+          📖 本棚を開いてストーリーを作る・読む
+        </button>
+        <div id="home-quick-couplings-container" style="display: none;"></div>
       </div>
 
     </div>
@@ -101,7 +105,7 @@
         
         <!-- Reader Header -->
         <div class="story-meta-row">
-          <span id="reader-meta-level">英検準2級</span>
+          <span id="reader-meta-level">ドイツ語 A1</span>
           <span class="dot-separator"></span>
           <span id="reader-meta-trope">深夜のオフィス</span>
           <span class="dot-separator"></span>
@@ -125,7 +129,7 @@
             </select>
           </div>
           <div class="display-modes">
-            <button id="btn-mode-en" class="pill-btn active">EN</button>
+            <button id="btn-mode-en" class="pill-btn active">DE</button>
             <button id="btn-mode-parallel" class="pill-btn">対訳</button>
             <button id="btn-study-mode" class="pill-btn">🎯 単語強調</button>
           </div>
@@ -144,7 +148,7 @@
         <!-- Grammar Breakdown Section -->
         <div class="grammar-drawer" id="reader-grammar-section" style="display: none;">
           <h4 style="font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-            🔍 英検最重要！構文・文法解説
+            🔍 ドイツ語重要フレーズ・文法解説
           </h4>
           <div id="grammar-explanation-container">
             <!-- Filled dynamically -->
@@ -153,7 +157,7 @@
 
         <!-- Eiken Comprehension Quizzes -->
         <div class="quiz-section" id="reader-quiz-section" style="display: none;">
-          <h4 class="section-title">📝 理解度チェッククイズ (英検風)</h4>
+          <h4 class="section-title">📝 理解度チェッククイズ</h4>
           <div id="quiz-container">
             <!-- Quizzes filled dynamically -->
           </div>
@@ -170,8 +174,8 @@
         <!-- Filled dynamically by app.js -->
       </div>
 
-      <!-- Preset Sample Stories -->
-      <div class="panel" style="margin-top: 24px;">
+      <!-- Preset Sample Stories (Hidden since English presets are no longer needed) -->
+      <div class="panel" style="margin-top: 24px; display: none;">
         <h3 class="section-title">📚 サンプル教材ですぐに学ぶ (APIキー不要)</h3>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
           APIキーをお持ちでない場合、以下のプリセットストーリーを選んでアプリの全機能を試すことができます。
@@ -198,10 +202,10 @@
       </div>
 
       <!-- Coupling Registry List -->
-      <div class="panel">
+      <div class="panel" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <h3 class="section-title" style="margin-bottom: 0;">🎭 カップリング管理</h3>
-          <button id="btn-add-coupling" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; min-height: 32px;">➕ 新規追加</button>
+          <button id="btn-add-coupling" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; min-height: 32px; display: none;">➕ 新規追加</button>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
           お好みの攻め・受けのペアを複数登録できます。生成タブから切り替えて、それぞれのカップリングごとのお話（単発/連載）を楽しむことができます。
@@ -339,7 +343,7 @@
           <div class="char-card-edit" style="border-left: 4px solid var(--accent); background: var(--bg-elevated); padding: 14px;">
             <div class="char-title">👤 キャラクターA (攻)</div>
             <div class="form-group">
-              <label>名前 (英語)</label>
+              <label>名前 (アルファベット)</label>
               <input type="text" id="edit-char-a-name" placeholder="Akira">
             </div>
             <div class="form-group">
@@ -356,7 +360,7 @@
           <div class="char-card-edit" style="border-left: 4px solid var(--gold); background: var(--bg-elevated); padding: 14px;">
             <div class="char-title">👤 キャラクターB (受)</div>
             <div class="form-group">
-              <label>名前 (英語)</label>
+              <label>名前 (アルファベット)</label>
               <input type="text" id="edit-char-b-name" placeholder="Kenji">
             </div>
             <div class="form-group">
@@ -372,7 +376,7 @@
 
         <div style="display: flex; gap: 10px; margin-top: 16px;">
           <button id="btn-save-coupling" class="btn-primary" style="flex: 2; padding: 10px 16px; font-size: 13.5px; min-height: 40px;">💾 保存する</button>
-          <button id="btn-cancel-coupling" class="btn-secondary" style="flex: 1; padding: 10px 16px; font-size: 13.5px; min-height: 40px; justify-content: center;">キャンセル</button>
+          <button id="btn-cancel-coupling" class="btn-secondary" style="flex: 1; padding: 10px 16px; font-size: 13.5px; min-height: 40px; justify-content: center; display: none;">キャンセル</button>
         </div>
       </div>
 
