@@ -2,6 +2,47 @@
  * Gemini API Communication Module for FujoLingo (German Version)
  */
 
+async function callGeminiAPI({ endpointUrl, isServerless, requestData, maxAttempts = 3 }) {
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let attempt = 0;
+  let lastError = null;
+
+  while (attempt < maxAttempts) {
+    attempt++;
+    try {
+      const response = await fetch(endpointUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return isServerless ? data.text : data.candidates[0].content.parts[0].text;
+      }
+
+      const errorText = await response.text();
+      lastError = new Error(`API returned error: ${response.status} - ${errorText}`);
+      const isRetryable = response.status === 429 || response.status >= 500;
+
+      if (!isRetryable || attempt >= maxAttempts) {
+        throw lastError;
+      }
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxAttempts) {
+        throw lastError;
+      }
+    }
+
+    const waitTime = attempt * 1000;
+    console.warn(`Gemini API temporary error (${lastError.message}). Retrying in ${waitTime}ms (Attempt ${attempt}/${maxAttempts})...`);
+    await delay(waitTime);
+  }
+}
+
 async function generateEnglishMaterial({
   apiKey,
   charA,
@@ -190,40 +231,17 @@ Write a short cultural or linguistic analysis essay in German designed as a read
   };
 
   try {
-    let response;
-    if (apiKey) {
-      response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
-      });
-    } else {
-      response = await fetch("/api/gemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: requestBody.contents,
-          generationConfig: requestBody.generationConfig,
-          model: modelName
-        })
-      });
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API returned error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const rawJsonText = apiKey ? data.candidates[0].content.parts[0].text : data.text;
-    
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: apiKey ? url : "/api/gemini",
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
+        contents: requestBody.contents,
+        generationConfig: requestBody.generationConfig,
+        model: modelName
+      }
+    });
     const parsedData = JSON.parse(rawJsonText);
     return parsedData;
-
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;
@@ -276,36 +294,15 @@ Return a JSON object conforming exactly to this schema:
   };
 
   try {
-    let response;
-    if (apiKey) {
-      response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
-      });
-    } else {
-      response = await fetch("/api/gemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: requestBody.contents,
-          generationConfig: requestBody.generationConfig,
-          model: modelName
-        })
-      });
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API returned error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const rawJsonText = apiKey ? data.candidates[0].content.parts[0].text : data.text;
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: apiKey ? url : "/api/gemini",
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
+        contents: requestBody.contents,
+        generationConfig: requestBody.generationConfig,
+        model: modelName
+      }
+    });
     return JSON.parse(rawJsonText);
   } catch (error) {
     console.error("Gemini Word Translation Error:", error);
@@ -368,25 +365,15 @@ Return JSON conforming to this schema:
   };
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(apiKey ? requestBody : {
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: url,
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
         contents: requestBody.contents,
         generationConfig: requestBody.generationConfig,
         model: modelName
-      })
+      }
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API returned error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const rawJsonText = apiKey ? data.candidates[0].content.parts[0].text : data.text;
     return JSON.parse(rawJsonText);
   } catch (error) {
     console.error("Failed to generate welcome dialogue:", error);

@@ -32,20 +32,48 @@ export default async function handler(req, res) {
         const modelName = model || "gemini-1.5-flash";
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-        const apiResponse = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ contents, generationConfig })
-        });
+        let apiResponse;
+        let attempt = 0;
+        const maxAttempts = 3;
+        let lastError = null;
 
-        if (!apiResponse.ok) {
-            const errorText = await apiResponse.text();
-            res.status(apiResponse.status).json({ 
-                error: `Gemini API returned error: ${apiResponse.status} - ${errorText}` 
-            });
-            return;
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        while (attempt < maxAttempts) {
+            attempt++;
+            try {
+                apiResponse = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ contents, generationConfig })
+                });
+
+                if (apiResponse.ok) {
+                    break;
+                }
+
+                const errorText = await apiResponse.text();
+                lastError = new Error(`Gemini API returned error: ${apiResponse.status} - ${errorText}`);
+                const isRetryable = apiResponse.status === 429 || apiResponse.status >= 500;
+
+                if (!isRetryable || attempt >= maxAttempts) {
+                    res.status(apiResponse.status).json({ error: lastError.message });
+                    return;
+                }
+
+            } catch (err) {
+                lastError = err;
+                if (attempt >= maxAttempts) {
+                    res.status(500).json({ error: `Fetch failed: ${err.message}` });
+                    return;
+                }
+            }
+
+            const waitTime = attempt * 1000;
+            console.log(`Gemini API temporary error. Retrying in ${waitTime}ms (Attempt ${attempt}/${maxAttempts})...`);
+            await delay(waitTime);
         }
 
         const data = await apiResponse.json();
