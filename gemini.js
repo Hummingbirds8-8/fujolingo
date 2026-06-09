@@ -106,8 +106,20 @@ ${continuityPrompt}
 1. Word Count: 80 to 130 words (Keep it short and very simple for absolute beginners in German).
 2. Content & Dialogue Focus:
    - Focus heavily on simple written dialogue in German between ${charA.name} and ${charB.name}.
-   - The story should highlight their specific dynamic: Sorrento (${charA.name}) is loyal and protective, but stoic — he rarely shows his emotions and speaks with few, measured words. When his feelings do surface, even slightly, it's endearing. Julian (${charB.name}) is a noble, elegant lord who speaks to Sorrento using formal, polite Japanese (敬語 style), treating him with warm dignity and respect. Julian's politeness toward Sorrento subtly reveals his genuine affection, and he occasionally teases Sorrento with refined, gentle humor.
-3. Japanese Translation: Translate the story into natural, appealing Japanese. Adjust their speech styles in the Japanese translation to match their character descriptions and dynamic. Character names in the Japanese translation MUST be written exactly as they are in English (e.g., write them exactly as "${charA.name}" and "${charB.name}" in the Japanese text; DO NOT map or translate them into Japanese Kanji or Katakana).
+   - Their dynamic: Sorrento (${charA.name}) is stoic and rarely shows emotion — he speaks with few, measured words. Julian (${charB.name}) is a noble lord who uses formal, polite language when speaking to Sorrento.
+3. Japanese Translation: Translate the story into natural, appealing Japanese WITH THESE CRITICAL SPEECH RULES:
+   [CRITICAL — Julian's Japanese speech in the translation]
+   - Julian MUST use 丁寧語/敬語 (formal polite Japanese) in EVERY line of his Japanese translation.
+   - ALL of Julian's sentences MUST end in 〜です or 〜ます (or equivalent polite forms).
+   - Julian NEVER uses 君 to refer to Sorrento. He uses Sorrento's name directly.
+   - Julian NEVER uses plain/casual forms: 〜だ、〜よ (plain)、〜たい (plain)、〜だろう、〜ね (plain).
+   - Correct Julian examples: 「お疲れ様でした、Sorrento。」「ありがとうございます。」「今日もよくやってくれましたね。」「あなたのそばにいられて、光栄ですよ。」
+   - WRONG Julian examples (DO NOT USE): 「君と一緒にいたい」「そうだな」「すごいな、Sorrento」「行くぞ」
+   [CRITICAL — Sorrento's Japanese speech in the translation]
+   - Sorrento speaks in short, minimal sentences. He is stoic and calm.
+   - He rarely shows emotion. When he does, it is very subtle (e.g., a brief pause, a quiet word).
+   - Correct Sorrento examples: 「……了解です。」「問題ありません。」「（少し間）……そうですね。」「Julian。気をつけてください。」
+   Character names in the Japanese translation MUST be written exactly as they are in English (e.g., write them exactly as "${charA.name}" and "${charB.name}" in the Japanese text; DO NOT map or translate them into Japanese Kanji or Katakana).
 4. Vocabulary:
    - Identify 4 to 6 important basic German vocabulary words in the story (e.g. key nouns with gender like 'die Flöte', 'der Herr', verbs in infinitive, basic adjectives).
    - Extract their base form, part of speech (Noun, Verb, Adjective, etc.), Japanese meaning, CEFR level (A1), importance rating (1 to 5 stars), and the exact sentence they appear in.
@@ -316,9 +328,32 @@ async function generateWelcomeDialogueWithGemini(couple, activeChar, otherChar, 
     ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`
     : `/api/gemini`;
 
+  const isJulianSpeaking = activeChar.name === 'Julian';
+  const isSorrentoSpeaking = activeChar.name === 'Sorrento';
+
+  const julianSpeechRule = `
+[CRITICAL RULE — Julian's speech style]
+Julian MUST speak in formal, polite Japanese (丁寧語/敬語) in EVERY sentence without exception.
+- ALL sentences MUST end in 〜です or 〜ます form.
+- Julian NEVER uses casual/plain forms such as 〜だ、〜よ（plain）、〜ね（plain）、〜たい（plain）、〜だろう, etc.
+- Julian NEVER uses 君 to refer to Sorrento. He uses 「Sorrento」by name or refers to him directly.
+- Correct examples of Julian's speech: 「お疲れ様です、Sorrento。」「今日はいい天気ですね。」「あなたのそばにいられて、光栄ですよ。」「…ありがとうございます、Sorrento。」
+- Incorrect examples (DO NOT USE): 「君と一緒にいたい」「そうだな」「行くぞ」「俺は〜」「〜だよ」`;
+
+  const sorrentoSpeechRule = `
+[CRITICAL RULE — Sorrento's speech style]
+Sorrento is stoic and rarely shows emotion. He speaks in very short, measured sentences.
+- He uses plain/direct Japanese, but without being rude — more like a calm professional.
+- He uses few words. Never over-explains or expresses emotions loudly.
+- Correct examples of Sorrento's speech: 「……問題ありません。」「はい。」「（少し間）……綺麗ですね」「了解です、Julian。」
+- His rare emotional moments are expressed quietly, in subtle ways — not dramatically.`;
+
+  const activeSpeechRule = isJulianSpeaking ? julianSpeechRule : isSorrentoSpeaking ? sorrentoSpeechRule : '';
+
   const prompt = `You are a creative writer specializing in character dialogue for language learners.
 Create a single, natural Japanese welcome greeting spoken by ${activeChar.name} addressing their partner ${otherChar.name} (or talking about their relationship/partner ${otherChar.name}).
-Under no circumstances should ${activeChar.name} address the reader/user as their lover. They must address ${otherChar.name} as their partner/lover.
+Under no circumstances should ${activeChar.name} address the reader/user as their lover. They must address ${otherChar.name} as their partner.
+${activeSpeechRule}
 
 [Character setting]
 - Name: ${activeChar.name}
@@ -334,13 +369,13 @@ Under no circumstances should ${activeChar.name} address the reader/user as thei
 [Requirements]
 1. Teach one useful German greeting, phrase, or idiom suitable for basic German learners (e.g., 'Guten Tag', 'Wie geht es dir?', 'Es freut mich', 'Vielen Dank', 'Alles Gute', 'bis bald').
 2. The dialogue must be written in Japanese, containing the German example sentence and its Japanese translation naturally.
-3. It MUST strictly match ${activeChar.name}'s speech style, personality, and their relationship dynamic: Sorrento (${activeChar.name === 'Sorrento' ? activeChar.name : otherChar.name}) is stoic and rarely shows emotion; he speaks with few, measured words — but when his feelings surface even slightly, it's quietly endearing. Julian (${activeChar.name === 'Julian' ? activeChar.name : otherChar.name}) is a noble, elegant lord who speaks to Sorrento using formal, polite Japanese (敬語), treating him with warm dignity; Julian's polite warmth toward Sorrento subtly reveals his genuine affection.
+3. Follow the CRITICAL RULE above for ${activeChar.name}'s speech style STRICTLY.
 4. Keep it under 150 characters in Japanese.
-5. In the Japanese translation text, keep their names written exactly as they are in English (e.g., write "${activeChar.name}" and "${otherChar.name}" directly in the Japanese text, do not map them to Japanese Kanji/Katakana).
+5. In the Japanese text, keep their names written exactly as they are in English (e.g., write "${activeChar.name}" and "${otherChar.name}" directly, do not map them to Japanese Kanji/Katakana).
 
 Return JSON conforming to this schema:
 {
-  "text": "The spoken dialogue in Japanese (e.g. 「お帰り。今日は...」)"
+  "text": "The spoken dialogue in Japanese (e.g. 「お帰りなさいました、Sorrento。今日は...でございます」)"
 }`;
 
   const responseSchema = {
