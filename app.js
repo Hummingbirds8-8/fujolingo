@@ -1465,6 +1465,56 @@ async function fallbackToFreeDictionary(cleanWord, originalWord) {
   }
 }
 
+async function renderWelcomeDialog() {
+  const currentCouple = state.couplings.find(c => c.id === state.selectedCouplingId);
+  const charA = currentCouple ? currentCouple.partnerA : null;
+  const charB = currentCouple ? currentCouple.partnerB : null;
+
+  // Randomly decide which character speaks first
+  const pickCharA = Math.random() > 0.5;
+  const activeChar = pickCharA ? charA : charB;
+  const otherChar = pickCharA ? charB : charA;
+
+  // Static fallback pools
+  const dialoguesA = [
+    "「ジュリアン様。今日は『Guten Morgen（おはようございます）』です。Guten Morgen, Julian.（おはようございます、ジュリアン様）。……本日もよろしくお願いします」",
+    "「ジュリアン様、お帰りなさい。今日は『Bitte（どうぞ）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」"
+  ];
+  const dialoguesB = [
+    "「お帰り、Sorrento。今日は『Wie geht es Ihnen?（ご機嫌いかがですか？）』ですよ。Wie geht es Ihnen heute?（今日はどうでしたか？）。……あなたの顔を見ると、少し安心しますね」",
+    "「ありがとうございます、Sorrento。今日は『Freund（大切な人）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」"
+  ];
+
+  // Try to get a fresh dialogue from Gemini API
+  let message = "";
+  try {
+    // generateWelcomeDialogueWithGemini is defined in gemini.js and returns a string
+    const apiKey = state.apiKey || "";
+    message = await generateWelcomeDialogueWithGemini(currentCouple, activeChar, otherChar, apiKey);
+  } catch (e) {
+    console.warn("Gemini API failed for welcome dialogue, falling back to static pool", e);
+    // Fallback: pick from static pool
+    const pool = pickCharA ? dialoguesA : dialoguesB;
+    message = pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  const avatarEl = document.getElementById("home-welcome-avatar");
+  const nameEl = document.getElementById("home-welcome-name");
+  const textEl = document.getElementById("home-welcome-text");
+
+  if (avatarEl && nameEl && textEl && activeChar) {
+    avatarEl.innerText = activeChar.name.charAt(0).toUpperCase();
+    avatarEl.style.background = pickCharA
+      ? "linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)"
+      : "linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)";
+    avatarEl.style.color = "#ffffff";
+    avatarEl.style.border = "none";
+
+    nameEl.innerText = activeChar.name;
+    textEl.innerText = message;
+  }
+}
+
 function closePopover() {
   DOM.globalVocabPopup.classList.remove("show");
   DOM.readerContentEnglish.querySelectorAll(".word-tap").forEach(s => s.classList.remove("active"));
