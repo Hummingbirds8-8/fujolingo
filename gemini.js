@@ -350,6 +350,24 @@ Sorrento is stoic and rarely shows emotion. He speaks in very short, measured se
 
   const activeSpeechRule = isJulianSpeaking ? julianSpeechRule : isSorrentoSpeaking ? sorrentoSpeechRule : '';
 
+  // Random theme selection to increase vocabulary variety
+  const themes = [
+    "food & drinks (e.g., Brot, Wasser, Apfel, Käse, trinken, essen, lecker)",
+    "weather & nature (e.g., Regen, Wind, Baum, Blume, Sonne, Wald, kalt, warm, regnen, schneien)",
+    "household items & daily objects (e.g., Tisch, Stuhl, Bett, Buch, Schlüssel, Lampe, Uhr, Zeitung)",
+    "emotions & feelings (e.g., glücklich, traurig, müde, Angst, Freude, lieben, hoffen)",
+    "places & buildings (e.g., Stadt, Haus, Zimmer, Bahnhof, Bibliothek, Schule, Wald, Fluss)",
+    "time & seasons (e.g., Jahr, Monat, Woche, Tag, Nacht, Sommer, Winter, Frühling, Herbst, heute, gestern, morgen)",
+    "clothing & accessories (e.g., Mantel, Schuh, Hemd, Tasche, Brille, tragen, waschen)",
+    "body parts & health (e.g., Hand, Kopf, Auge, Herz, Fuß, gesund, krank)",
+    "animals & pets (e.g., Hund, Katze, Vogel, Pferd, Maus, Fisch, fliegen, laufen, bellen)",
+    "travel & movement (e.g., Reise, Weg, Zug, Auto, gehen, fahren, reisen, fliegen, ankommen)",
+    "adjectives of description (e.g., schön, groß, klein, alt, neu, schnell, langsam, gut, schlecht, wichtig)",
+    "actions & verbs (e.g., lesen, schreiben, sprechen, hören, sehen, machen, helfen, schenken, suchen, finden)",
+    "colors (e.g., rot, blau, grün, gelb, schwarz, weiß, bunt)"
+  ];
+  const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
   const prompt = `You are a creative writer specializing in character dialogue for language learners.
 Create a single, natural Japanese welcome greeting spoken by ${activeChar.name} addressing their partner ${otherChar.name} (or talking about their relationship/partner ${otherChar.name}).
 Under no circumstances should ${activeChar.name} address the reader/user as their lover. They must address ${otherChar.name} as their partner.
@@ -367,9 +385,13 @@ ${activeSpeechRule}
 - Description: ${otherChar.description}
 
 [Requirements]
-1. Teach one useful German greeting, phrase, noun, or idiom suitable for basic German learners.
+1. Teach one useful German word, greeting, phrase, noun, verb, or adjective.
+   - Target Category/Theme: Choose a word or phrase that fits the category: "${randomTheme}".
+   - CRITICAL (Word diversity): Do NOT repeat the same basic words like 'Tee', 'Kaffee', 'Musik', 'Freund', 'Liebe', 'Reise', 'Sonne', 'Meer' unless it perfectly fits the selected category in a highly creative way. Strive to introduce a wide variety of everyday German vocabulary.
    - CRITICAL: When introducing a German noun, you MUST attach its definite article (der, die, das) and specify its grammatical gender (e.g., "die Blume (花/女性名詞)", "der Kaffee (コーヒー/男性名詞)", "das Buch (本/中性名詞)") so that the learner can learn the correct article.
-2. The dialogue must be written in Japanese, containing the German example sentence/phrase (with article if it's a noun) and its Japanese translation naturally.
+2. The dialogue must be written in Japanese, but the speaker MUST include and say a complete, natural German example sentence that actually uses the introduced word.
+   - For example, if introducing "der Tisch (テーブル)", they should not just say the word in isolation. They must use it in a German sentence like "Der Tisch ist sauber. (テーブルは綺麗です)" or "Stellen Sie es auf den Tisch. (それをテーブルの上に置いてください)" and explain it.
+   - The German sentence and its Japanese translation must flow naturally inside their dialogue/roleplay context.
 3. Follow the CRITICAL RULE above for ${activeChar.name}'s speech style STRICTLY.
 4. Keep it under 150 characters in Japanese.
 5. In the Japanese text, keep their names written exactly as they are in English (e.g., write "${activeChar.name}" and "${otherChar.name}" directly, do not map them to Japanese Kanji/Katakana).
@@ -396,7 +418,7 @@ Return JSON conforming to this schema:
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: responseSchema,
-      temperature: 0.7
+      temperature: 1.0
     }
   };
 
