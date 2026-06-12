@@ -1,88 +1,446 @@
-// api/gemini.js (Vercel Serverless Function)
+/**
+ * Gemini API Communication Module for FujoLingo (German Version)
+ */
 
-export default async function handler(req, res) {
-    // CORS headers setup
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+async function callGeminiAPI({ endpointUrl, isServerless, requestData, maxAttempts = 3 }) {
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let attempt = 0;
+  let lastError = null;
 
-    // Handle preflight OPTIONS request
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method Not Allowed' });
-        return;
-    }
-
+  while (attempt < maxAttempts) {
+    attempt++;
     try {
-        const { contents, generationConfig, model } = req.body;
-        
-        // Retrieve Gemini API Key from environment variables securely
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            res.status(500).json({ 
-                error: 'サーバー側の環境変数 GEMINI_API_KEY が設定されていません。Vercel管理画面から登録してください。' 
-            });
-            return;
-        }
+      const response = await fetch(endpointUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+      });
 
-        const modelName = model || "gemini-2.5-flash";
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      if (response.ok) {
+        const data = await response.json();
+        return isServerless ? data.text : data.candidates[0].content.parts[0].text;
+      }
 
-        let apiResponse;
-        let attempt = 0;
-        const maxAttempts = 3;
-        let lastError = null;
+      const errorText = await response.text();
+      lastError = new Error(`API returned error: ${response.status} - ${errorText}`);
+      const isRetryable = response.status === 429 || response.status >= 500;
 
-        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-        while (attempt < maxAttempts) {
-            attempt++;
-            try {
-                apiResponse = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ contents, generationConfig })
-                });
-
-                if (apiResponse.ok) {
-                    break;
-                }
-
-                const errorText = await apiResponse.text();
-                lastError = new Error(`Gemini API returned error: ${apiResponse.status} - ${errorText}`);
-                const isRetryable = apiResponse.status === 429 || apiResponse.status >= 500;
-
-                if (!isRetryable || attempt >= maxAttempts) {
-                    res.status(apiResponse.status).json({ error: lastError.message });
-                    return;
-                }
-
-            } catch (err) {
-                lastError = err;
-                if (attempt >= maxAttempts) {
-                    res.status(500).json({ error: `Fetch failed: ${err.message}` });
-                    return;
-                }
-            }
-
-            const waitTime = attempt * 1000;
-            console.log(`Gemini API temporary error. Retrying in ${waitTime}ms (Attempt ${attempt}/${maxAttempts})...`);
-            await delay(waitTime);
-        }
-
-        const data = await apiResponse.json();
-        const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        
-        res.status(200).json({ text: textResult });
-
+      if (!isRetryable || attempt >= maxAttempts) {
+        throw lastError;
+      }
     } catch (error) {
-        console.error('Serverless Function Error:', error);
-        res.status(500).json({ error: error.message || '内部サーバーエラーが発生しました。' });
+      lastError = error;
+      if (attempt >= maxAttempts) {
+        throw lastError;
+      }
     }
+
+    const waitTime = attempt * 1000;
+    console.warn(`Gemini API temporary error (${lastError.message}). Retrying in ${waitTime}ms (Attempt ${attempt}/${maxAttempts})...`);
+    await delay(waitTime);
+  }
+}
+
+async function generateEnglishMaterial({
+  apiKey,
+  charA,
+  charB,
+  relationship,
+  intimacy,
+  level,
+  type,
+  trope,
+  customTrope,
+  mode,          // "standalone" or "series"
+  episodeNumber, // e.g., 2
+  historySummary // e.g., "..."
+}) {
+  const modelName = "gemini-2.5-flash"; 
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+  const intimacyDescs = {
+    strangers: "Met recently / Rivals. They are hesitant, distant, or display light friction/tension. Not yet lovers.",
+    crush: "One-sided crush / Conscious of each other. Subtle blushes, eye contact, but no confessions yet. Sweet tension.",
+    slowburn: "Slow-burn mutual crush. They are deeply attracted to each other but hold back, creating a flustered, sweet, and torturous distance. Platonic but intensely charged emotional tension.",
+    secret_lovers: "Secret lovers. They are already dating but must hide it. Displays secret physical touches, hidden sweet words, and cute flustered dynamics when others are around.",
+    established: "Established lovers with deep physical and emotional intimacy. They display comfortable affection, deep romance, and sweet physical closeness."
+  };
+  const intimacyDesc = intimacyDescs[intimacy] || intimacyDescs.slowburn;
+
+  const targetLevelDesc = level === "pre2" 
+    ? "German CEFR A1 level (very simple sentences, basic vocabulary, present tense, simple structures, suitable for absolute beginners)."
+    : "German CEFR A2 level (simple sentences, basic grammar like compound past tense, basic prepositions, common adjectives, suitable for beginners).";
+
+  const tropeText = trope === "custom" ? customTrope : trope;
+
+  // Build the continuity context if in series mode
+  let continuityPrompt = "";
+  if (mode === "series" && episodeNumber > 1 && historySummary) {
+    continuityPrompt = `
+[Story Continuity Context]
+This is Episode ${episodeNumber} of a continuous story featuring ${charA.name} and ${charB.name}.
+Here is the summary of the previous episodes in Japanese:
+"${historySummary}"
+ 
+You MUST write this new story as a direct continuation (Episode ${episodeNumber}) based on the previous history and the new situation: "${tropeText}". Concurrently, develop their emotional connection. Make sure the event from previous chapters is respected (e.g. if they already shared coffee, do not repeat the coffee introduction; build upon it).`;
+  }
+
+  let prompt = "";
+  if (type === "story") {
+    prompt = `You are a professional German teacher (DaF) and creative writer.
+Write a short story (SS) in German designed as a reading passage for Japanese German learners at the absolute beginner level (CEFR A1/A2).
+
+[Story Settings]
+- Level: ${targetLevelDesc}
+- Relationship Concept: "${relationship || 'Attendant and Lord / Traveling companions'}"
+- Intimacy Level & Phase: ${intimacyDesc}
+- Characters to feature:
+  * Character A (Seme / Attendant / Protective / Sorrento): Name is "${charA.name}". Description: "${charA.description}". Speech style in Japanese translation: "${charA.speechStyle}".
+  * Character B (Uke / Lord / Muted romantic experience / Julian): Name is "${charB.name}". Description: "${charB.description}". Speech style in Japanese translation: "${charB.speechStyle}".
+- Situation/Trope: "${tropeText}"
+${continuityPrompt}
+
+[Requirements]
+1. Word Count: 80 to 130 words (Keep it short and very simple for absolute beginners in German).
+2. Content & Dialogue Focus:
+   - Focus heavily on simple written dialogue in German between ${charA.name} and ${charB.name}.
+   - Their dynamic: Sorrento (${charA.name}) is stoic and rarely shows emotion — he speaks with few, measured words. Julian (${charB.name}) is a noble lord who uses formal, polite language when speaking to Sorrento.
+3. Japanese Translation: Translate the story into natural, appealing Japanese WITH THESE CRITICAL SPEECH RULES:
+   [CRITICAL — Julian's Japanese speech in the translation]
+   - Julian MUST use 丁寧語/敬語 (formal polite Japanese) in EVERY line of his Japanese translation.
+   - ALL of Julian's sentences MUST end in 〜です or 〜ます (or equivalent polite forms).
+   - Julian NEVER uses 君 to refer to Sorrento. He uses Sorrento's name directly.
+   - Julian NEVER uses plain/casual forms: 〜だ、〜よ (plain)、〜たい (plain)、〜だろう、〜ね (plain).
+   - Correct Julian examples: 「お疲れ様でした、Sorrento。」「ありがとうございます。」「今日もよくやってくれましたね。」「あなたのそばにいられて、光栄ですよ。」
+   - WRONG Julian examples (DO NOT USE): 「君と一緒にいたい」「そうだな」「すごいな、Sorrento」「行くぞ」
+   [CRITICAL — Sorrento's Japanese speech in the translation]
+   - Sorrento speaks in short, minimal sentences. He is stoic and calm.
+   - He rarely shows emotion. When he does, it is very subtle (e.g., a brief pause, a quiet word).
+   - Correct Sorrento examples: 「……了解です。」「問題ありません。」「（少し間）……そうですね。」「Julian。気をつけてください。」
+   Character names in the Japanese translation MUST be written exactly as they are in English (e.g., write them exactly as "${charA.name}" and "${charB.name}" in the Japanese text; DO NOT map or translate them into Japanese Kanji or Katakana).
+4. Vocabulary:
+   - Identify 4 to 6 important basic German vocabulary words in the story (e.g. key nouns with gender like 'die Flöte', 'der Herr', verbs in infinitive, basic adjectives).
+   - Extract their base form, part of speech (Noun, Verb, Adjective, etc.), Japanese meaning, CEFR level (A1), importance rating (1 to 5 stars), and the exact sentence they appear in.
+5. Grammar Explanations:
+   - Select 2 key sentences from the story that illustrate basic German grammar structures (such as verb conjugation, word order in main clauses, accusative/dative cases, basic prepositions).
+   - Provide a visual grammatical structure mapping and a concise, clear explanation in Japanese.
+6. Reading Comprehension Quizzes:
+   - Create 2 multiple-choice reading comprehension questions in German based on the story.
+   - Each question must have exactly 4 choices in German.
+   - Specify the index of the correct answer (0-indexed).
+   - Provide a Japanese explanation for why the correct answer is correct and why other choices are wrong.
+7. Summary:
+   - Provide a brief, one-sentence Japanese summary (about 20-30 characters) of what happened in this specific episode, to be used as history context for the next episode. Put this in the 'summary' field.
+8. No Japanese in German: Under no circumstances should Japanese characters appear inside the German story text or German dialogues.`;
+  } else {
+    // Essay Mode
+    prompt = `You are a professional German teacher (DaF) and literary analyst.
+Write a short cultural or linguistic analysis essay in German designed as a reading passage for Japanese German learners at the basic level (CEFR A1/A2).
+
+[Essay Settings]
+- Level: ${targetLevelDesc}
+- Trope/Concept to analyze: "${tropeText}"
+- Reference Characters (optional, use if helpful as examples):
+  * ${charA.name} (${charA.description})
+  * ${charB.name} (${charB.description})
+
+[Requirements]
+1. Word Count: 80 to 130 words.
+2. Content: Analyze the situation or trope "${tropeText}" in German. You can use the characters ${charA.name} and ${charB.name} as example models if relevant.
+3. Japanese Translation: Translate the essay into natural, elegant Japanese. Character names in the Japanese translation MUST be written exactly as they are input (DO NOT translate them into Japanese Kanji or Katakana).
+4. Vocabulary:
+   - Identify 4 to 6 important vocabulary words in the essay suitable for basic German learners.
+   - Extract their base form, part of speech, Japanese meaning, CEFR level (A1/A2), importance rating (1 to 5 stars), and the exact sentence they appear in.
+5. Grammar Explanations:
+   - Select 2 key sentences from the essay that demonstrate basic German grammar.
+   - Provide a visual grammatical structure mapping and a concise, clear explanation in Japanese.
+6. Reading Comprehension Quizzes:
+   - Create 2 multiple-choice reading comprehension questions in German based on the essay.
+   - Each question must have exactly 4 choices.
+   - Specify the index of the correct answer (0-indexed).
+   - Provide a Japanese explanation for the answer.
+7. Summary:
+   - Provide a brief, one-sentence Japanese summary of the essay. Put this in the 'summary' field.
+8. No Japanese in German: Ensure the German text is 100% written in German, containing absolutely no Japanese characters.`;
+  }
+
+  // Define response JSON schema to enforce strict format
+  const responseSchema = {
+    type: "OBJECT",
+    properties: {
+      title: { type: "STRING", description: "Title of the story or essay" },
+      level: { type: "STRING", description: "The targeted German level (e.g., 'pre2' for A1, 'grade2' for A2)" },
+      wordCount: { type: "INTEGER", description: "Total word count in German text" },
+      english: { type: "STRING", description: "The complete German text (keep field name 'english' for compatibility)" },
+      japanese: { type: "STRING", description: "The complete Japanese translation." },
+      summary: { type: "STRING", description: "A brief one-sentence Japanese summary of the episode." },
+      words: {
+        type: "ARRAY",
+        description: "List of 4 to 6 vocabulary words to learn",
+        items: {
+          type: "OBJECT",
+          properties: {
+            word: { type: "STRING", description: "The word in base form (e.g. Flöte)" },
+            pos: { type: "STRING", description: "Part of speech (noun, verb, adjective, adverb)" },
+            meaning: { type: "STRING", description: "Japanese translation of the word" },
+            level: { type: "STRING", description: "German Level (e.g. A1, A2)" },
+            importance: { type: "INTEGER", description: "Importance stars (1 to 5)" },
+            context: { type: "STRING", description: "The exact sentence in the text where this word appears" }
+          },
+          required: ["word", "pos", "meaning", "level", "importance", "context"]
+        }
+      },
+      grammarExplanations: {
+        type: "ARRAY",
+        description: "Explanations of 2 grammatically rich sentences",
+        items: {
+          type: "OBJECT",
+          properties: {
+            sentence: { type: "STRING", description: "The original German sentence" },
+            structure: { type: "STRING", description: "Grammatical structure breakdown" },
+            explanation: { type: "STRING", description: "Concise grammar explanation in Japanese" }
+          },
+          required: ["sentence", "structure", "explanation"]
+        }
+      },
+      questions: {
+        type: "ARRAY",
+        description: "Exactly 2 reading comprehension questions",
+        items: {
+          type: "OBJECT",
+          properties: {
+            question: { type: "STRING", description: "The German question" },
+            choices: {
+              type: "ARRAY",
+              description: "4 multiple-choice options in German",
+              items: { type: "STRING" }
+            },
+            answerIndex: { type: "INTEGER", description: "The index of the correct answer (0, 1, 2, or 3)" },
+            explanation: { type: "STRING", description: "Detailed explanation of the answers in Japanese" }
+          },
+          required: ["question", "choices", "answerIndex", "explanation"]
+        }
+      }
+    },
+    required: ["title", "level", "wordCount", "english", "japanese", "summary", "words", "grammarExplanations", "questions"]
+  };
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          { text: prompt }
+        ]
+      }
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: responseSchema,
+      temperature: 1.0
+    }
+  };
+
+  try {
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: apiKey ? url : "/api/gemini",
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
+        contents: requestBody.contents,
+        generationConfig: requestBody.generationConfig,
+        model: modelName
+      }
+    });
+    const parsedData = JSON.parse(rawJsonText);
+    return parsedData;
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
+}
+
+async function translateWordWithGemini(word, context, apiKey) {
+  const modelName = "gemini-2.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+  const prompt = `You are an expert bilingual German-Japanese dictionary for German language learners.
+Analyze the German word "${word}" inside the context of this sentence: "${context}".
+Translate the word into natural Japanese as it is used in this specific sentence context.
+Identify its part of speech in Japanese (e.g. 名詞, 動詞, 形容詞, 副詞), CEFR level (e.g. A1, A2, B1, B2, or '対象外'), and importance rating (from 1 to 5 stars).
+
+Return a JSON object conforming exactly to this schema:
+{
+  "word": "${word}",
+  "pos": "part of speech in Japanese",
+  "meaning": "Japanese translation of the word reflecting its context",
+  "level": "CEFR level (e.g. A1, A2, B1, etc.)",
+  "importance": 1 to 5 (integer representing importance stars)
+}`;
+
+  const responseSchema = {
+    type: "OBJECT",
+    properties: {
+      word: { type: "STRING" },
+      pos: { type: "STRING" },
+      meaning: { type: "STRING" },
+      level: { type: "STRING" },
+      importance: { type: "INTEGER" }
+    },
+    required: ["word", "pos", "meaning", "level", "importance"]
+  };
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          { text: prompt }
+        ]
+      }
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: responseSchema,
+      temperature: 0.2
+    }
+  };
+
+  try {
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: apiKey ? url : "/api/gemini",
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
+        contents: requestBody.contents,
+        generationConfig: requestBody.generationConfig,
+        model: modelName
+      }
+    });
+    return JSON.parse(rawJsonText);
+  } catch (error) {
+    console.error("Gemini Word Translation Error:", error);
+    throw error;
+  }
+}
+
+async function generateWelcomeDialogueWithGemini(couple, activeChar, otherChar, apiKey) {
+  const modelName = "gemini-2.5-flash";
+  const url = apiKey 
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`
+    : `/api/gemini`;
+
+  const isJulianSpeaking = activeChar.name === 'Julian';
+  const isSorrentoSpeaking = activeChar.name === 'Sorrento';
+
+  const julianSpeechRule = `
+[CRITICAL RULE — Julian's speech style]
+Julian MUST speak in formal, polite Japanese (丁寧語/敬語) in EVERY sentence without exception.
+- ALL sentences MUST end in 〜です or 〜ます form.
+- Julian NEVER uses casual/plain forms such as 〜だ、〜よ（plain）、〜ね（plain）、〜たい（plain）、〜だろう, etc.
+- Julian NEVER uses 君 to refer to Sorrento. He uses 「Sorrento」by name or refers to him directly.
+- Correct examples of Julian's speech: 「お疲れ様です、Sorrento。」「今日はいい天気ですね。」「あなたのそばにいられて、光栄ですよ。」「…ありがとうございます、Sorrento。」
+- Incorrect examples (DO NOT USE): 「君と一緒にいたい」「そうだな」「行くぞ」「俺は〜」「〜だよ」`;
+
+  const sorrentoSpeechRule = `
+[CRITICAL RULE — Sorrento's speech style]
+Sorrento is stoic and rarely shows emotion. He speaks in very short, measured sentences.
+- He uses plain/direct Japanese, but without being rude — more like a calm professional.
+- He uses few words. Never over-explains or expresses emotions loudly.
+- Correct examples of Sorrento's speech: 「……問題ありません。」「はい。」「（少し間）……綺麗ですね」「了解です、Julian。」
+- His rare emotional moments are expressed quietly, in subtle ways — not dramatically.`;
+
+  const activeSpeechRule = isJulianSpeaking ? julianSpeechRule : isSorrentoSpeaking ? sorrentoSpeechRule : '';
+
+  // Random theme selection to increase vocabulary variety
+  const themes = [
+    "food & drinks (e.g., Brot, Wasser, Apfel, Käse, trinken, essen, lecker)",
+    "weather & nature (e.g., Regen, Wind, Baum, Blume, Sonne, Wald, kalt, warm, regnen, schneien)",
+    "household items & daily objects (e.g., Tisch, Stuhl, Bett, Buch, Schlüssel, Lampe, Uhr, Zeitung)",
+    "emotions & feelings (e.g., glücklich, traurig, müde, Angst, Freude, lieben, hoffen)",
+    "places & buildings (e.g., Stadt, Haus, Zimmer, Bahnhof, Bibliothek, Schule, Wald, Fluss)",
+    "time & seasons (e.g., Jahr, Monat, Woche, Tag, Nacht, Sommer, Winter, Frühling, Herbst, heute, gestern, morgen)",
+    "clothing & accessories (e.g., Mantel, Schuh, Hemd, Tasche, Brille, tragen, waschen)",
+    "body parts & health (e.g., Hand, Kopf, Auge, Herz, Fuß, gesund, krank)",
+    "animals & pets (e.g., Hund, Katze, Vogel, Pferd, Maus, Fisch, fliegen, laufen, bellen)",
+    "travel & movement (e.g., Reise, Weg, Zug, Auto, gehen, fahren, reisen, fliegen, ankommen)",
+    "adjectives of description (e.g., schön, groß, klein, alt, neu, schnell, langsam, gut, schlecht, wichtig)",
+    "actions & verbs (e.g., lesen, schreiben, sprechen, hören, sehen, machen, helfen, schenken, suchen, finden)",
+    "colors (e.g., rot, blau, grün, gelb, schwarz, weiß, bunt)"
+  ];
+  const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
+  const prompt = `You are a creative writer specializing in character dialogue for language learners.
+Create a single, natural Japanese welcome greeting spoken by ${activeChar.name} addressing their partner ${otherChar.name} (or talking about their relationship/partner ${otherChar.name}).
+Under no circumstances should ${activeChar.name} address the reader/user as their lover. They must address ${otherChar.name} as their partner.
+${activeSpeechRule}
+
+[Character setting]
+- Name: ${activeChar.name}
+- Description: ${activeChar.description}
+- Speech style in Japanese: ${activeChar.speechStyle}
+- Relationship to ${otherChar.name}: ${couple.relationship}
+- Intimacy Level: ${couple.intimacy || "slowburn"}
+
+[Partner setting]
+- Name: ${otherChar.name}
+- Description: ${otherChar.description}
+
+[Requirements]
+1. Teach one useful German word, greeting, phrase, noun, verb, or adjective.
+   - Target Category/Theme: Choose a word or phrase that fits the category: "${randomTheme}".
+   - CRITICAL (Word diversity): Do NOT repeat the same basic words like 'Tee', 'Kaffee', 'Musik', 'Freund', 'Liebe', 'Reise', 'Sonne', 'Meer' unless it perfectly fits the selected category in a highly creative way. Strive to introduce a wide variety of everyday German vocabulary.
+   - CRITICAL: When introducing a German noun, you MUST attach its definite article (der, die, das) and specify its grammatical gender (e.g., "die Blume (花/女性名詞)", "der Kaffee (コーヒー/男性名詞)", "das Buch (本/中性名詞)") so that the learner can learn the correct article.
+2. The dialogue must be written in Japanese, but the speaker MUST include and say a complete, natural German example sentence that actually uses the introduced word.
+   - For example, if introducing "der Tisch (テーブル)", they should not just say the word in isolation. They must use it in a German sentence like "Der Tisch ist sauber. (テーブルは綺麗です)" or "Stellen Sie es auf den Tisch. (それをテーブルの上に置いてください)" and explain it.
+   - The German sentence and its Japanese translation must flow naturally inside their dialogue/roleplay context.
+3. Follow the CRITICAL RULE above for ${activeChar.name}'s speech style STRICTLY.
+4. Keep it under 150 characters in Japanese.
+5. In the Japanese text, keep their names written exactly as they are in English (e.g., write "${activeChar.name}" and "${otherChar.name}" directly, do not map them to Japanese Kanji/Katakana).
+
+Return JSON conforming to this schema:
+{
+  "text": "The spoken dialogue in Japanese (e.g. 「お帰りなさいました、Sorrento。今日は...でございます」)"
+}`;
+
+  const responseSchema = {
+    type: "OBJECT",
+    properties: {
+      text: { type: "STRING" }
+    },
+    required: ["text"]
+  };
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [{ text: prompt }]
+      }
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: responseSchema,
+      temperature: 1.0
+    }
+  };
+
+  try {
+    const rawJsonText = await callGeminiAPI({
+      endpointUrl: url,
+      isServerless: !apiKey,
+      requestData: apiKey ? requestBody : {
+        contents: requestBody.contents,
+        generationConfig: requestBody.generationConfig,
+        model: modelName
+      }
+    });
+    return JSON.parse(rawJsonText);
+  } catch (error) {
+    console.error("Failed to generate welcome dialogue:", error);
+    throw error;
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.generateEnglishMaterial = generateEnglishMaterial;
+  window.translateWordWithGemini = translateWordWithGemini;
+  window.generateWelcomeDialogueWithGemini = generateWelcomeDialogueWithGemini;
 }
