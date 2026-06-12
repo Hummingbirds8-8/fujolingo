@@ -1470,27 +1470,56 @@ async function renderWelcomeDialog() {
   const charA = currentCouple ? currentCouple.partnerA : null;
   const charB = currentCouple ? currentCouple.partnerB : null;
 
+  const dialoguesDefault = [
+    "「お帰りなさい。今日は『Guten Tag（こんにちは）』ですよ。Lernen wir Deutsch!（ドイツ語を学びましょう！）」",
+    "「お疲れ様でした。今日は『Danke（ありがとう）』です。Lernen macht Spaß!（学ぶのは楽しいですよ！）」",
+    "「お帰りなさい。今日は『Bitte（どうぞ）』です。Viel Erfolg!（うまくいくといいですね！）」",
+    "「お疲れ様でした。今日は『Auf Wiedersehen（さようなら）』です。Bis bald!（またすぐに！）」"
+  ];
+
   // Randomly decide which character speaks first
   const pickCharA = Math.random() > 0.5;
   const activeChar = pickCharA ? charA : charB;
   const otherChar = pickCharA ? charB : charA;
 
-  // Static fallback pools
+  if (!activeChar) {
+    const textEl = document.getElementById("home-welcome-text");
+    if (textEl) {
+      textEl.innerText = dialoguesDefault[Math.floor(Math.random() * dialoguesDefault.length)];
+    }
+    return;
+  }
+
+  // Static fallback pools (Rich version with 8 dialogues per character including gender articles for nouns)
   const dialoguesA = [
     "「ジュリアン様。今日は『Guten Morgen（おはようございます）』です。Guten Morgen, Julian.（おはようございます、ジュリアン様）。……本日もよろしくお願いします」",
-    "「ジュリアン様、お帰りなさい。今日は『der Tee（紅茶/男性名詞）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」"
+    "「ジュリアン様、お帰りなさい。今日は『der Tee（紅茶/男性名詞）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」",
+    "「今日は『die Reise（旅/女性名詞）』を。Ich begleite Sie gerne.（喜んでお供します）。……どこへでも」",
+    "「今日は『Danke schön（ありがとうございます）』です。Danke schön, Julian.（ありがとうございます、ジュリアン様）。……いつも、そちらの言葉ですね」",
+    "「今日は『die Reise（旅/女性名詞）』について。Wir reisen zusammen.（一緒に旅をしています）。……悪くないですね、この旅も」",
+    "「今日は『Gute Nacht（おやすみなさい）』です。Gute Nacht, Julian.（おやすみなさい）。……ゆっくり休んでください」",
+    "「今日は『die Musik（音楽/女性名詞）』です。Ich spiele für Sie.（あなたのために演奏します）。……聴いていただけますか」",
+    "「今日は『der Freund（友・大切な人/男性名詞）』です。Sie sind mein wichtigster Mensch.（あなたは私の大切な人です）。……少し、言いすぎましたね」"
   ];
+
   const dialoguesB = [
     "「お帰り、Sorrento。今日は『Wie geht es Ihnen?（ご機嫌いかがですか？）』ですよ。Wie geht es Ihnen heute?（今日はどうでしたか？）。……あなたの顔を見ると、少し安心しますね」",
-    "「ありがとうございます、Sorrento。今日は『der Freund（友達/男性名詞）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」"
+    "「ありがとうございます、Sorrento。今日は『der Freund（大切な人・友/男性名詞）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」",
+    "「Sorrento、あなたのフルートは美しいですね。今日は『wunderschön（とても美しい）』です。Ihre Musik ist wunderschön.（あなたの音楽はとても美しいです）。……素直な感想ですよ」",
+    "「お疲れ様でした、Sorrento。今日は『der Tee（お茶・紅茶/男性名詞）』です。Trinken wir zusammen Tee?（一緒にお茶でもどうですか？）。……あなたとのこういう時間が、好きですよ」",
+    "「今日は『die Sonne（太陽/女性名詞）』ですよ。Sorrento, Sie sind meine Sonne.（Sorrento、あなたは私の太陽です）。……笑わないでくださいね、本気ですから」",
+    "「今日は『das Meer（海/中性名詞）』です。Das Meer ist heute ruhig.（今日の海は穏やかですね）。……こうしてあなたと眺めていると、なんだか穏やかな気持ちになります」",
+    "「Sorrento、あなたの音色が聞こえてきましたよ。今日は『die Musik（音楽/女性名詞）』です。Ich höre Ihre Musik gerne.（あなたの音楽を聴くのが好きです）。……旅の人たちも、みんな足を止めていましたね」",
+    "「Sorrento、今日は『die Reise（旅/女性名詞）』です。Unsere Reise geht weiter.（私たちの旅はまだ続きますね）。……あなたと一緒なら、どこまでも行けそうな気がしますよ」"
   ];
 
   // Try to get a fresh dialogue from Gemini API
   let message = "";
   try {
-    // generateWelcomeDialogueWithGemini is defined in gemini.js and returns a string
     const apiKey = state.apiKey || "";
-    message = await generateWelcomeDialogueWithGemini(currentCouple, activeChar, otherChar, apiKey);
+    // generateWelcomeDialogueWithGemini is defined in gemini.js and returns an object
+    const resultObj = await generateWelcomeDialogueWithGemini(currentCouple, activeChar, otherChar, apiKey);
+    message = resultObj.text;
   } catch (e) {
     console.warn("Gemini API failed for welcome dialogue, falling back to static pool", e);
     // Fallback: pick from static pool
@@ -1502,7 +1531,7 @@ async function renderWelcomeDialog() {
   const nameEl = document.getElementById("home-welcome-name");
   const textEl = document.getElementById("home-welcome-text");
 
-  if (avatarEl && nameEl && textEl && activeChar) {
+  if (avatarEl && nameEl && textEl) {
     avatarEl.innerText = activeChar.name.charAt(0).toUpperCase();
     avatarEl.style.background = pickCharA
       ? "linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)"
@@ -1771,70 +1800,4 @@ function updateStreakUI() {
   }
 }
 
-// 笏€笏€ CHARACTER DIALOGUE RENDERING 笏€笏€
-function renderWelcomeDialog() {
-  const currentCouple = state.couplings.find(c => c.id === state.selectedCouplingId);
-  const charA = currentCouple ? currentCouple.partnerA : null;
-  const charB = currentCouple ? currentCouple.partnerB : null;
-
-  const dialoguesA = [
-    "「ジュリアン様。今日は『Guten Morgen（おはようございます）』です。Guten Morgen, Julian.（おはようございます、ジュリアン様）。……本日もよろしくお願いします」",
-    "「ジュリアン様、お帰りなさい。今日は『Bitte（どうぞ）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」",
-    "「今日は『Reise（旅）』を。Ich begleite Sie gerne.（喜んでお供します）。……どこへでも」",
-    "「今日は『Danke schön（ありがとうございます）』です。Danke schön, Julian.（ありがとうございます、ジュリアン様）。……いつも、そちらの言葉ですね」",
-    "「今日は『Gute Reise（良い旅を）』です。Wir reisen zusammen.（一緒に旅をしています）。……悪くないですね、この旅も」",
-    "「今日は『Gute Nacht（おやすみなさい）』です。Gute Nacht, Julian.（おやすみなさい）。……ゆっくり休んでください」",
-    "「今日は『Musik（音楽）』です。Ich spiele für Sie.（あなたのために演奏します）。……聴いていただけますか」",
-    "「今日は『Freund（友）』です。Sie sind mein wichtigster Mensch.（あなたは私の大切な人です）。……少し、言いすぎましたね」"
-  ];
-
-  const dialoguesB = [
-    "「お帰り、Sorrento。今日は『Wie geht es Ihnen?（ご機嫌いかがですか？）』ですよ。Wie geht es Ihnen heute?（今日はどうでしたか？）。……あなたの顔を見ると、少し安心しますね」",
-    "「ありがとうございます、Sorrento。今日は『Freund（大切な人）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」",
-    "「Sorrento、あなたのフルートは美しいですね。今日は『wunderschön（とても美しい）』です。Ihre Musik ist wunderschön.（あなたの音楽はとても美しいです）。……素直な感想ですよ」",
-    "「お疲れ様でした、Sorrento。今日は『Tee（お茶）』です。Trinken wir zusammen Tee?（一緒にお茶でもどうですか？）。……あなたとのこういう時間が、好きですよ」",
-    "「今日は『Sonne（太陽）』ですよ。Sorrento, Sie sind meine Sonne.（Sorrento、あなたは私の太陽です）。……笑わないでくださいね、本気ですから」",
-    "「今日は『Meer（海）』です。Das Meer ist heute ruhig.（今日の海は穏やかですね）。……こうしてあなたと眺めていると、なんだか穏やかな気持ちになります」",
-    "「Sorrento、あなたの音色が聞こえてきましたよ。今日は『Musik（音楽）』です。Ich höre Ihre Musik gerne.（あなたの音楽を聴くのが好きです）。……旅の人たちも、みんな足を止めていましたね」",
-    "「Sorrento、今日は『Reise（旅）』です。Unsere Reise geht weiter.（私たちの旅はまだ続きますね）。……あなたと一緒なら、どこまでも行けそうな気がしますよ」"
-  ];
-
-  const dialoguesDefault = [
-    "「お帰りなさい。今日は『Guten Tag（こんにちは）』ですよ。Lernen wir Deutsch!（ドイツ語を学びましょう！）」",
-    "「お疲れ様でした。今日は『Danke（ありがとう）』です。Lernen macht Spaß!（学ぶのは楽しいですよ！）」",
-    "「お帰りなさい。今日は『Bitte（どうぞ）』です。Viel Erfolg!（うまくいくといいですね！）」",
-    "「お疲れ様でした。今日は『Auf Wiedersehen（さようなら）』です。Bis bald!（またすぐに！）」"
-  ];
-
-  const pickCharA = Math.random() > 0.5;
-  const activeChar = pickCharA ? charA : charB;
-  
-  if (!activeChar) {
-    const textEl = document.getElementById("home-welcome-text");
-    if (textEl) {
-      textEl.innerText = dialoguesDefault[Math.floor(Math.random() * dialoguesDefault.length)];
-    }
-    return;
-  }
-
-  const pool = pickCharA ? dialoguesA : dialoguesB;
-  const message = pool[Math.floor(Math.random() * pool.length)];
-
-  const avatarEl = document.getElementById("home-welcome-avatar");
-  const nameEl = document.getElementById("home-welcome-name");
-  const textEl = document.getElementById("home-welcome-text");
-
-  if (avatarEl && nameEl && textEl) {
-    avatarEl.innerText = activeChar.name.charAt(0).toUpperCase();
-    avatarEl.style.background = pickCharA 
-      ? "linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)" 
-      : "linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)";
-    avatarEl.style.color = "#ffffff";
-    avatarEl.style.border = "none";
-    
-    nameEl.innerText = activeChar.name;
-    textEl.innerText = message;
-  }
-}
-
-window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("DOMContentLoaded", init);
