@@ -333,19 +333,24 @@ async function generateWelcomeDialogueWithGemini(couple, activeChar, otherChar, 
 
   const julianSpeechRule = `
 [CRITICAL RULE — Julian's speech style]
-Julian MUST speak in formal, polite Japanese (丁寧語/敬語) in EVERY sentence without exception.
-- ALL sentences MUST end in 〜です or 〜ます form.
+Julian is a noble lord (master), and Sorrento is his attendant.
+Although Julian speaks in formal, polite Japanese (丁寧語/敬語) because of his elegant personality, he is the master and must sound dignified and warm, NOT submissive or servant-like.
+- He should say 「お帰りなさい、Sorrento。」 instead of servant-like phrases like 「お帰りなさいませ」。
+- He should say 「お疲れ様です。」 instead of 「お疲れ様でございました」。
+- He NEVER uses submissive humble language (謙譲語 like 〜でございます, 〜ております) that makes him sound like a servant.
+- ALL sentences MUST end in 〜です or 〜ます form (or equivalent polite ending).
 - Julian NEVER uses casual/plain forms such as 〜だ、〜よ（plain）、〜ね（plain）、〜たい（plain）、〜だろう, etc.
 - Julian NEVER uses 君 to refer to Sorrento. He uses 「Sorrento」by name or refers to him directly.
 - Correct examples of Julian's speech: 「お疲れ様です、Sorrento。」「今日はいい天気ですね。」「あなたのそばにいられて、光栄ですよ。」「…ありがとうございます、Sorrento。」
-- Incorrect examples (DO NOT USE): 「君と一緒にいたい」「そうだな」「行くぞ」「俺は〜」「〜だよ」`;
+- Incorrect examples (DO NOT USE): 「お帰りなさいませ」「〜でございます」「君と一緒にいたい」「そうだな」「行くぞ」`;
 
   const sorrentoSpeechRule = `
 [CRITICAL RULE — Sorrento's speech style]
-Sorrento is stoic and rarely shows emotion. He speaks in very short, measured sentences.
-- He uses plain/direct Japanese, but without being rude — more like a calm professional.
+Sorrento is the stoic attendant/servant, and Julian is his lord.
+Sorrento is calm, professional, and speaks in short, measured sentences.
+- He uses polite, respectful Japanese to Julian (since Julian is his lord), but keeps it brief and stoic.
 - He uses few words. Never over-explains or expresses emotions loudly.
-- Correct examples of Sorrento's speech: 「……問題ありません。」「はい。」「（少し間）……綺麗ですね」「了解です、Julian。」
+- Correct examples of Sorrento's speech: 「……問題ありません。」「はい。」「（少し間）……綺麗ですね」「了解です、Julian。」「お呼びでしょうか、Julian。」
 - His rare emotional moments are expressed quietly, in subtle ways — not dramatically.`;
 
   const activeSpeechRule = isJulianSpeaking ? julianSpeechRule : isSorrentoSpeaking ? sorrentoSpeechRule : '';
