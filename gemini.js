@@ -367,8 +367,9 @@ ${activeSpeechRule}
 - Description: ${otherChar.description}
 
 [Requirements]
-1. Teach one useful German greeting, phrase, or idiom suitable for basic German learners (e.g., 'Guten Tag', 'Wie geht es dir?', 'Es freut mich', 'Vielen Dank', 'Alles Gute', 'bis bald').
-2. The dialogue must be written in Japanese, containing the German example sentence and its Japanese translation naturally.
+1. Teach one useful German greeting, phrase, noun, or idiom suitable for basic German learners.
+   - CRITICAL: When introducing a German noun, you MUST attach its definite article (der, die, das) and specify its grammatical gender (e.g., "die Blume (花/女性名詞)", "der Kaffee (コーヒー/男性名詞)", "das Buch (本/中性名詞)") so that the learner can learn the correct article.
+2. The dialogue must be written in Japanese, containing the German example sentence/phrase (with article if it's a noun) and its Japanese translation naturally.
 3. Follow the CRITICAL RULE above for ${activeChar.name}'s speech style STRICTLY.
 4. Keep it under 150 characters in Japanese.
 5. In the Japanese text, keep their names written exactly as they are in English (e.g., write "${activeChar.name}" and "${otherChar.name}" directly, do not map them to Japanese Kanji/Katakana).

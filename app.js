@@ -1478,11 +1478,11 @@ async function renderWelcomeDialog() {
   // Static fallback pools
   const dialoguesA = [
     "「ジュリアン様。今日は『Guten Morgen（おはようございます）』です。Guten Morgen, Julian.（おはようございます、ジュリアン様）。……本日もよろしくお願いします」",
-    "「ジュリアン様、お帰りなさい。今日は『Bitte（どうぞ）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」"
+    "「ジュリアン様、お帰りなさい。今日は『der Tee（紅茶/男性名詞）』です。Einen Tee, bitte.（紅茶をどうぞ）。……お疲れのようですね」"
   ];
   const dialoguesB = [
     "「お帰り、Sorrento。今日は『Wie geht es Ihnen?（ご機嫌いかがですか？）』ですよ。Wie geht es Ihnen heute?（今日はどうでしたか？）。……あなたの顔を見ると、少し安心しますね」",
-    "「ありがとうございます、Sorrento。今日は『Freund（大切な人）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」"
+    "「ありがとうございます、Sorrento。今日は『der Freund（友達/男性名詞）』です。Sie sind mein treuer Begleiter.（あなたは私の大切な旅の仲間です）。……本当に、そう思っていますよ」"
   ];
 
   // Try to get a fresh dialogue from Gemini API
